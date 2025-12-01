@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:trabalhofinal/BancoDados/DataBaseHelper.dart';
 import 'package:trabalhofinal/Models/Diario.dart';
+import 'package:trabalhofinal/Services/SyncService.dart';
 
 // Cores Temáticas
 const Color primaryColor = Colors.blue;
@@ -67,11 +68,34 @@ class _TelaDiarioState extends State<TelaDiario> {
       // Converte o modelo de UI para o modelo de DB
       final Diario diario = entradaSalva.toDiario(widget.userId);
 
+      debugPrint('_salvarEntrada: Salvando entrada de diário para usuário ${widget.userId}');
+      
       // ⭐️ Insere ou atualiza no banco de dados
       final int newId = await _dbService.insertOrUpdateDiarioEntry(diario);
+      
+      debugPrint('_salvarEntrada: Entrada salva com ID local: $newId');
 
       // Atualiza o modelo de UI com o ID permanente retornado pelo DB
       entradaSalva.id = newId;
+
+      // Sincroniza com a API após salvar localmente
+      try {
+        final syncService = SyncService();
+        final diarioComId = diario.copyWith(id: newId);
+        
+        if (diario.id == null) {
+          // Nova entrada - sincroniza imediatamente
+          debugPrint('_salvarEntrada: Sincronizando nova entrada com a API');
+          await syncService.syncDiarioEntry(diarioComId);
+        } else {
+          // Entrada existente - atualiza na API
+          debugPrint('_salvarEntrada: Atualizando entrada existente na API');
+          await syncService.updateDiarioEntry(diarioComId);
+        }
+      } catch (e) {
+        debugPrint('_salvarEntrada: Erro ao sincronizar entrada: $e');
+        // Não bloqueia a UI, apenas loga o erro
+      }
 
       // Recarrega a lista completa para refletir as mudanças e ordenação
       await _loadItemsFromDb();
@@ -79,6 +103,7 @@ class _TelaDiarioState extends State<TelaDiario> {
       _showMessage(context, entradaSalva.id == diario.id ? "Entrada atualizada com sucesso!" : "Nova entrada adicionada!");
     } catch (e) {
       debugPrint('Erro ao salvar/atualizar entrada: $e');
+      debugPrint('StackTrace: ${StackTrace.current}');
       _showMessage(context, "Erro ao salvar a entrada. Tente novamente.", isError: true);
     }
   }
@@ -219,13 +244,11 @@ class _TelaDiarioState extends State<TelaDiario> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            FloatingActionButton.extended(
-              onPressed: () => _abrirModalEdicao(),
-              icon: const Icon(Icons.add),
-              label: const Text('Adicionar Novo Registro'),
-              backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
-            )
+            Text(
+              "Use o botão + abaixo para adicionar uma nova entrada.",
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
@@ -392,9 +415,16 @@ class _EntradaDiarioCardState extends State<_EntradaDiarioCard> {
             children: CATEGORIES.map((tab) {
               final isSelected = _activeTab == tab;
               return ActionChip(
-                label: Text(tab, style: TextStyle(color: isSelected ? Colors.white : primaryColor)),
-                backgroundColor: isSelected ? primaryColor : primaryColor,
-                side: BorderSide(color: isSelected ? Colors.transparent : primaryColor),
+                label: Text(
+                  tab, 
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                backgroundColor: isSelected ? primaryColor : Colors.grey.shade400,
+                side: BorderSide(color: isSelected ? Colors.transparent : Colors.grey.shade400),
                 onPressed: () {
                   setState(() {
                     _activeTab = tab;
@@ -622,9 +652,16 @@ class _ModalEdicaoDiarioState extends State<_ModalEdicaoDiario> {
       children: CATEGORIES.map((tab) {
         final isSelected = _activeTab == tab;
         return ActionChip(
-          label: Text(tab, style: TextStyle(color: isSelected ? Colors.white : primaryColor)),
-          backgroundColor: isSelected ? primaryColor : primaryColor,
-          side: BorderSide(color: isSelected ? Colors.transparent : primaryColor),
+          label: Text(
+            tab, 
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          backgroundColor: isSelected ? primaryColor : Colors.grey.shade400,
+          side: BorderSide(color: isSelected ? Colors.transparent : Colors.grey.shade400),
           onPressed: () {
             setState(() {
               _activeTab = tab;

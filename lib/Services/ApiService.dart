@@ -5,6 +5,8 @@ import 'package:trabalhofinal/Models/BoardItem.dart';
 import 'package:trabalhofinal/Models/Diario.dart';
 import 'package:trabalhofinal/Models/Routine.dart';
 import 'package:trabalhofinal/Models/User.dart';
+import 'package:trabalhofinal/Models/Anamnese.dart';
+import 'package:trabalhofinal/Models/MChat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trabalhofinal/Services/ApiConstant.dart'; // Importa a nova classe de constantes
 
@@ -563,5 +565,232 @@ class ApiService {
     } on Exception {
       rethrow;
     }
+  }
+
+  // =========================================================
+  // ANamnese e M-CHAT (PSICÓLOGO)
+  // =========================================================
+
+  Future<Anamnese> createAssessment(Anamnese anamnese) async {
+    final url = Uri.parse('${ApiConstant.baseUrl}/psych/assessments');
+    // Converte para o formato esperado pela API (snake_case e estrutura aninhada)
+    final body = _anamneseToApiFormat(anamnese);
+
+    try {
+      final response = await _performRequest('POST', url, body: body);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body) as Map<String, dynamic>;
+        return Anamnese.fromMap(json);
+      } else {
+        throw _handleHttpError(response);
+      }
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future<Anamnese> getAssessment(int id) async {
+    final url = Uri.parse('${ApiConstant.baseUrl}/psych/assessments/$id');
+
+    try {
+      final response = await _performRequest('GET', url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body) as Map<String, dynamic>;
+        return Anamnese.fromMap(json);
+      } else {
+        throw _handleHttpError(response);
+      }
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future<List<Anamnese>> getAllAssessments() async {
+    final url = Uri.parse('${ApiConstant.baseUrl}/psych/assessments');
+
+    try {
+      final response = await _performRequest('GET', url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = jsonDecode(response.body) as List<dynamic>;
+        return jsonList.map((json) => Anamnese.fromMap(json as Map<String, dynamic>)).toList();
+      } else {
+        throw _handleHttpError(response);
+      }
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future<Anamnese> updateAssessment(int id, Anamnese anamnese) async {
+    final url = Uri.parse('${ApiConstant.baseUrl}/psych/assessments/$id');
+    final body = anamnese.toMap();
+
+    try {
+      final response = await _performRequest('PUT', url, body: body);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body) as Map<String, dynamic>;
+        return Anamnese.fromMap(json);
+      } else {
+        throw _handleHttpError(response);
+      }
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future<MCHAT> saveMCHAT(int assessmentId, Map<String, String> respostas) async {
+    final url = Uri.parse('${ApiConstant.baseUrl}/psych/assessments/$assessmentId/mchat');
+    final body = {'respostas': respostas};
+
+    try {
+      final response = await _performRequest('POST', url, body: body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> json = jsonDecode(response.body) as Map<String, dynamic>;
+        return MCHAT.fromMap(json);
+      } else {
+        throw _handleHttpError(response);
+      }
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future<MCHAT> getMCHAT(int assessmentId) async {
+    final url = Uri.parse('${ApiConstant.baseUrl}/psych/assessments/$assessmentId/mchat');
+
+    try {
+      final response = await _performRequest('GET', url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body) as Map<String, dynamic>;
+        return MCHAT.fromMap(json);
+      } else {
+        throw _handleHttpError(response);
+      }
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> getReport(int assessmentId) async {
+    final url = Uri.parse('${ApiConstant.baseUrl}/psych/assessments/$assessmentId/report');
+
+    try {
+      final response = await _performRequest('GET', url);
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      } else {
+        throw _handleHttpError(response);
+      }
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future<String> exportReport(int assessmentId, String format) async {
+    final url = Uri.parse('${ApiConstant.baseUrl}/psych/assessments/$assessmentId/export');
+    final body = {'format': format}; // 'pdf' ou 'csv'
+
+    try {
+      final response = await _performRequest('POST', url, body: body);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body) as Map<String, dynamic>;
+        return json['download_url'] as String? ?? json['link'] as String? ?? '';
+      } else {
+        throw _handleHttpError(response);
+      }
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  // Converte Anamnese para o formato esperado pela API
+  Map<String, dynamic> _anamneseToApiFormat(Anamnese anamnese) {
+    return {
+      'paciente': {
+        'nome': anamnese.pacienteNome,
+        'nascimento': anamnese.pacienteNascimento,
+      },
+      'responsaveis': anamnese.responsaveis ?? [],
+      'aplicador': anamnese.aplicador,
+      'Identificacao': {
+        'cidade': anamnese.cidade,
+        'celular': anamnese.telefone,
+      },
+      'medico': {
+        'responsavel': anamnese.medicoResponsavel,
+        'assistente': anamnese.medicoAssistente,
+        'diagnostico': anamnese.diagnosticoMedico,
+        'medicamentos': anamnese.medicamentos ?? [],
+        'alergias': anamnese.alergias,
+        'audicao_exame': anamnese.audicaoExame,
+        'audicao_percepcao': anamnese.audicaoPercepcao,
+        'otites': anamnese.otitesHistorico,
+      },
+      'gestacao_parto_puerperio': {
+        'planejada': anamnese.gestacaoPlanejada ?? false,
+        'intercorrencias': anamnese.gestacaoIntercorrencias,
+        'semanas': anamnese.semanasGestacao,
+        'parto': anamnese.tipoParto,
+        'apgar': anamnese.apgar,
+        'peso': anamnese.pesoNascimento,
+        'altura': anamnese.alturaNascimento,
+        'pos_intercorrencias': anamnese.partoIntercorrencias,
+        'amamentacao': anamnese.amamentacao,
+      },
+      'dnpm': {
+        'controle_cervical': anamnese.controleCervical,
+        'sentar': anamnese.sentarSemApoio,
+        'engatinhar': anamnese.engatinhar,
+        'andar': anamnese.andar,
+        'primeiras_palavras': anamnese.primeirasPalavras,
+        'comportamento_verbal': anamnese.comportamentoVerbal,
+        'motor_amplo': anamnese.motorAmplo,
+        'motor_fino': anamnese.motorFino,
+      },
+      'escola': {
+        'frequenta': anamnese.frequentaEscola ?? false,
+        'qual': anamnese.escolaNome,
+        'turno': anamnese.escolaTurno,
+        'ano': anamnese.escolaAno,
+        'professora': anamnese.escolaProfessora,
+        'comportamento': anamnese.escolaComportamento,
+      },
+      'avd': {
+        'banheiro': anamnese.banheiro,
+        'banho': anamnese.banho,
+        'dentes': anamnese.escovarDentes,
+        'vestir': anamnese.vestir,
+        'maos': anamnese.lavarMaos,
+        'alimentacao': anamnese.alimentacao,
+        'degluticao': anamnese.degluticao,
+        'restricoes': anamnese.restricoesAlimentares,
+        'habitos': anamnese.habitosAlimentares,
+        'sono': anamnese.sono,
+        'chupeta': anamnese.chupeta ?? false,
+        'mamadeira': anamnese.mamadeira ?? false,
+      },
+      'sensorial': {
+        'tatil': anamnese.sensorialTatil,
+        'auditiva': anamnese.sensorialAuditiva,
+        'olfativa': anamnese.sensorialOlfativa,
+        'visual': anamnese.sensorialVisual,
+      },
+      'brincar_preferencias': anamnese.brincarPreferencias,
+      'medos': anamnese.medos,
+      'socializacao': anamnese.socializacao,
+      'queixas': anamnese.queixas,
+      'comportamentos_inadequados': anamnese.comportamentosInadequados,
+      'observacoes': anamnese.observacoes,
+      'status': anamnese.status ?? 'rascunho',
+      'data': anamnese.dataAvaliacao,
+    };
   }
 }

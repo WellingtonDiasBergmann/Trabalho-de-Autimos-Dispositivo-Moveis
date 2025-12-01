@@ -29,10 +29,10 @@ class DataBaseHelper {
     String documentsPath = await getDatabasesPath();
     String path = join(documentsPath, 'spektrum_app.db');
 
-    // Versão 8 para incluir todos os campos de sincronização e corrigir passos_rotina.
+    // Versão 11 para adicionar server_id e needsSync em diarios
     return await openDatabase(
       path,
-      version: 8, // VERSÃO AUMENTADA PARA 8
+      version: 11, // VERSÃO AUMENTADA PARA 11
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -95,12 +95,14 @@ class DataBaseHelper {
       CREATE TABLE diarios(
         id INTEGER PRIMARY KEY,
         pessoa_id INTEGER,
+        server_id INTEGER,
         data_registro TEXT,
         humor TEXT,
         sono TEXT,
         alimentacao TEXT,
         crise TEXT,
         observacoes TEXT,
+        needsSync INTEGER DEFAULT 1,
         FOREIGN KEY (pessoa_id) REFERENCES pessoas(id) ON DELETE CASCADE
       )
     ''');
@@ -120,6 +122,7 @@ class DataBaseHelper {
       CREATE TABLE board_items(
         id INTEGER PRIMARY KEY,
         board_id INTEGER,
+        server_id INTEGER,
         texto TEXT,
         img_url TEXT,
         audio_url TEXT,
@@ -221,6 +224,66 @@ class DataBaseHelper {
         await db.execute("ALTER TABLE passos_rotina ADD COLUMN routine_server_id INTEGER;");
       } catch (e) {
         debugPrint("AVISO DB: Erro ao adicionar colunas em passos_rotina (podem já existir): $e");
+      }
+    }
+
+    // ** MIGRAÇÃO CRÍTICA PARA V9 - Garantir que needsSync existe **
+    if (oldVersion < 9) {
+      debugPrint('MIGRATION: V9 - Verificando e adicionando coluna needsSync se necessário.');
+      try {
+        // Verifica se a coluna existe consultando o schema
+        final tableInfo = await db.rawQuery("PRAGMA table_info(rotinas)");
+        final hasNeedsSync = tableInfo.any((column) => column['name'] == 'needsSync');
+
+        if (!hasNeedsSync) {
+          debugPrint('MIGRATION: Adicionando coluna needsSync à tabela rotinas.');
+          await db.execute('ALTER TABLE rotinas ADD COLUMN needsSync INTEGER DEFAULT 1');
+          // Atualiza todas as rotinas existentes para marcar como não sincronizadas
+          await db.execute("UPDATE rotinas SET needsSync = 1 WHERE needsSync IS NULL");
+        } else {
+          debugPrint('MIGRATION: Coluna needsSync já existe na tabela rotinas.');
+        }
+      } catch (e) {
+        debugPrint("ERRO DB: Falha ao verificar/adicionar coluna needsSync: $e");
+        // Tenta adicionar mesmo assim (pode já existir)
+        try {
+          await db.execute('ALTER TABLE rotinas ADD COLUMN needsSync INTEGER DEFAULT 1');
+        } catch (e2) {
+          debugPrint("AVISO DB: Coluna needsSync pode já existir: $e2");
+        }
+      }
+    }
+    
+    // ** MIGRAÇÃO V11 - Adicionar server_id e needsSync a board_items e diarios **
+    if (oldVersion < 11) {
+      debugPrint('MIGRATION: V11 - Adicionando colunas de sincronização.');
+      try {
+        // Adiciona server_id em board_items
+        final boardItemsInfo = await db.rawQuery("PRAGMA table_info(board_items)");
+        final hasBoardItemsServerId = boardItemsInfo.any((column) => column['name'] == 'server_id');
+        
+        if (!hasBoardItemsServerId) {
+          await db.execute('ALTER TABLE board_items ADD COLUMN server_id INTEGER');
+          debugPrint('MIGRATION V11: Coluna server_id adicionada em board_items.');
+        }
+        
+        // Adiciona server_id e needsSync em diarios
+        final diariosInfo = await db.rawQuery("PRAGMA table_info(diarios)");
+        final hasDiariosServerId = diariosInfo.any((column) => column['name'] == 'server_id');
+        final hasDiariosNeedsSync = diariosInfo.any((column) => column['name'] == 'needsSync');
+        
+        if (!hasDiariosServerId) {
+          await db.execute('ALTER TABLE diarios ADD COLUMN server_id INTEGER');
+          debugPrint('MIGRATION V11: Coluna server_id adicionada em diarios.');
+        }
+        
+        if (!hasDiariosNeedsSync) {
+          await db.execute('ALTER TABLE diarios ADD COLUMN needsSync INTEGER DEFAULT 1');
+          await db.execute("UPDATE diarios SET needsSync = 1 WHERE needsSync IS NULL");
+          debugPrint('MIGRATION V11: Coluna needsSync adicionada em diarios.');
+        }
+      } catch (e) {
+        debugPrint('MIGRATION V11 ERROR: $e');
       }
     }
   }
@@ -378,34 +441,57 @@ class DataBaseHelper {
   Future<List<Routine>> getUnsyncedRoutines() async {
     final db = await database;
 
-    // Busca rotinas onde needsSync é 1 (true)
-    final rotinasMaps = await db.query(
-      'rotinas',
-      where: 'needsSync = 1',
-    );
+    try {
+      // Verifica se a coluna needsSync existe
+      final tableInfo = await db.rawQuery("PRAGMA table_info(rotinas)");
+      final hasNeedsSync = tableInfo.any((column) => column['name'] == 'needsSync');
 
-    List<Routine> unsynced = [];
+      if (!hasNeedsSync) {
+        debugPrint('AVISO: Coluna needsSync não encontrada. Tentando adicionar...');
+        try {
+          await db.execute('ALTER TABLE rotinas ADD COLUMN needsSync INTEGER DEFAULT 1');
+          await db.execute("UPDATE rotinas SET needsSync = 1 WHERE needsSync IS NULL");
+          debugPrint('SUCCESS: Coluna needsSync adicionada com sucesso.');
+        } catch (e) {
+          debugPrint('ERRO: Falha ao adicionar coluna needsSync: $e');
+          // Se não conseguir adicionar, retorna lista vazia
+          return [];
+        }
+      }
 
-    for (var map in rotinasMaps) {
-      final rotina = Routine.fromMap(map);
-
-      // CORREÇÃO: Usa rotina.id (int?) como PK local
-      final localRoutineId = rotina.id;
-      if (localRoutineId == null) continue;
-
-      final stepsMaps = await db.query(
-        'passos_rotina',
-        where: 'rotina_id = ?',
-        whereArgs: [localRoutineId], // Usa o ID LOCAL (int) para buscar passos
+      // Busca rotinas onde needsSync é 1 (true)
+      final rotinasMaps = await db.query(
+        'rotinas',
+        where: 'needsSync = 1',
       );
 
-      final routineWithSteps = rotina.copyWith(
-        steps: stepsMaps.map((s) => RoutineStep.fromMap(s)).toList(),
-      );
-      unsynced.add(routineWithSteps);
+      List<Routine> unsynced = [];
+
+      for (var map in rotinasMaps) {
+        final rotina = Routine.fromMap(map);
+
+        // CORREÇÃO: Usa rotina.id (int?) como PK local
+        final localRoutineId = rotina.id;
+        if (localRoutineId == null) continue;
+
+        final stepsMaps = await db.query(
+          'passos_rotina',
+          where: 'rotina_id = ?',
+          whereArgs: [localRoutineId], // Usa o ID LOCAL (int) para buscar passos
+        );
+
+        final routineWithSteps = rotina.copyWith(
+          steps: stepsMaps.map((s) => RoutineStep.fromMap(s)).toList(),
+        );
+        unsynced.add(routineWithSteps);
+      }
+
+      return unsynced;
+    } catch (e) {
+      debugPrint('ERRO em getUnsyncedRoutines: $e');
+      // Se houver erro, retorna lista vazia para não quebrar o fluxo
+      return [];
     }
-
-    return unsynced;
   }
 
   // ROTINAS E PASSOS
@@ -585,16 +671,57 @@ class DataBaseHelper {
     return await db.delete('rotinas', where: 'id = ?', whereArgs: [id]);
   }
 
-  // DIÁRIOS (Não alterados, apenas para completar o arquivo)
+  // DIÁRIOS
   Future<int> insertOrUpdateDiarioEntry(Diario entry) async {
     final db = await database;
     final map = entry.toMap();
+    
+    // Garante que needsSync está presente (marca como não sincronizado)
+    if (!map.containsKey('needsSync')) {
+      map['needsSync'] = 1;
+    }
+    
     if (entry.id != null) {
+      // UPDATE: Atualiza entrada existente
       final rowsAffected = await db.update('diarios', map, where: 'id = ?', whereArgs: [entry.id]);
       return rowsAffected > 0 ? entry.id! : 0;
     } else {
+      // INSERT: Nova entrada
       final newId = await db.insert('diarios', map, conflictAlgorithm: ConflictAlgorithm.replace);
       return newId;
+    }
+  }
+  
+  /// Busca todas as entradas de diário que precisam ser sincronizadas
+  Future<List<Diario>> getUnsyncedDiarioEntries() async {
+    final db = await database;
+    
+    try {
+      final tableInfo = await db.rawQuery("PRAGMA table_info(diarios)");
+      final hasNeedsSync = tableInfo.any((column) => column['name'] == 'needsSync');
+
+      if (!hasNeedsSync) {
+        debugPrint('AVISO: Coluna needsSync não encontrada em diarios. Tentando adicionar...');
+        try {
+          await db.execute('ALTER TABLE diarios ADD COLUMN needsSync INTEGER DEFAULT 1');
+          await db.execute("UPDATE diarios SET needsSync = 1 WHERE needsSync IS NULL");
+          debugPrint('SUCCESS: Coluna needsSync adicionada em diarios.');
+        } catch (e) {
+          debugPrint('ERRO: Falha ao adicionar coluna needsSync em diarios: $e');
+          return [];
+        }
+      }
+
+      final diariosMaps = await db.query(
+        'diarios',
+        where: 'needsSync = 1',
+        orderBy: 'data_registro DESC',
+      );
+
+      return diariosMaps.map((map) => Diario.fromMap(map)).toList();
+    } catch (e) {
+      debugPrint('ERRO em getUnsyncedDiarioEntries: $e');
+      return [];
     }
   }
 

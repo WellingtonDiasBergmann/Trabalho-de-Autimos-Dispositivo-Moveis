@@ -55,14 +55,37 @@ class Diario {
   // Cria um objeto a partir de um Map (lido do DB)
   factory Diario.fromMap(Map<String, dynamic> map) {
     return Diario(
-      id: map['id'],
-      pessoaId: map['pessoa_id'],
-      dataRegistro: map['data_registro'],
-      humor: map['humor'],
-      sono: map['sono'],
-      alimentacao: map['alimentacao'],
-      crise: map['crise'],
-      observacoes: map['observacoes'],
+      id: map['id'] as int?,
+      pessoaId: (map['pessoa_id'] as int?) ?? (map['pessoa_id'] as num?)?.toInt() ?? 0,
+      dataRegistro: map['data_registro'] as String? ?? DateTime.now().toIso8601String(),
+      humor: map['humor'] as String? ?? '',
+      sono: map['sono'] as String?,
+      alimentacao: map['alimentacao'] as String?,
+      crise: map['crise'] as String?,
+      observacoes: map['observacoes'] as String?,
+    );
+  }
+  
+  // Método copyWith para criar cópias modificadas
+  Diario copyWith({
+    int? id,
+    int? pessoaId,
+    String? dataRegistro,
+    String? humor,
+    String? sono,
+    String? alimentacao,
+    String? crise,
+    String? observacoes,
+  }) {
+    return Diario(
+      id: id ?? this.id,
+      pessoaId: pessoaId ?? this.pessoaId,
+      dataRegistro: dataRegistro ?? this.dataRegistro,
+      humor: humor ?? this.humor,
+      sono: sono ?? this.sono,
+      alimentacao: alimentacao ?? this.alimentacao,
+      crise: crise ?? this.crise,
+      observacoes: observacoes ?? this.observacoes,
     );
   }
 }
@@ -111,10 +134,25 @@ class EntradaDiario {
 
   // Converte o modelo de DB (Diario) para o modelo de UI (EntradaDiario)
   factory EntradaDiario.fromDiario(Diario diario) {
-    final dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss"); // Formato ISO para DB
+    // Tenta parsear a data em diferentes formatos
+    DateTime dataParsed;
+    try {
+      // Tenta primeiro como ISO8601 (pode ter microssegundos)
+      dataParsed = DateTime.parse(diario.dataRegistro);
+    } catch (e) {
+      try {
+        // Tenta como formato "yyyy-MM-dd HH:mm:ss"
+        final dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+        dataParsed = dateFormat.parse(diario.dataRegistro);
+      } catch (e2) {
+        // Fallback: usa data atual
+        dataParsed = DateTime.now();
+      }
+    }
+    
     return EntradaDiario(
       id: diario.id,
-      data: dateFormat.parse(diario.dataRegistro),
+      data: dataParsed,
       sonoStatus: diario.sono ?? OPTIONS['SONO']!.first,
       humorStatus: diario.humor, // 'humor' é obrigatório no modelo Diario
       alimentacaoStatus: diario.alimentacao ?? OPTIONS['ALIMENTAÇÃO']!.first,

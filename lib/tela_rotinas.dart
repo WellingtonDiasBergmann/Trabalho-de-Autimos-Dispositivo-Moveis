@@ -45,10 +45,11 @@ class _TelaRotinasState extends State<TelaRotinas> {
 
   // Novo: Carrega as rotinas do banco de dados
   Future<void> _loadRotinas() async {
-    // Não altere o estado de carregamento se já estivermos carregando
-    // Se for a primeira chamada (initState), _isLoading será true e passará
-    // Se for uma chamada de recarga, o estado será gerenciado abaixo.
-    if (_isLoading) return; // <-- Removido para garantir que initState carregue
+    // Evita múltiplas chamadas simultâneas, mas permite o carregamento inicial
+    if (_isLoading && _rotinas.isNotEmpty) {
+      // Se já está carregando E já tem rotinas, não recarrega
+      return;
+    }
 
     setState(() {
       _isLoading = true;

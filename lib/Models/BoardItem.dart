@@ -27,9 +27,9 @@ class BoardItem {
     return BoardItem(
       id: map['id'] as int?,
       boardId: map['board_id'] as int,
-      imgUrl: map['img_url'] as String,
-      texto: map['texto'] as String,
-      fraseTts: map['frase_tts'] as String,
+      imgUrl: map['img_url'] as String? ?? '',
+      texto: map['texto'] as String? ?? '',
+      fraseTts: map['frase_tts'] as String? ?? '',
     );
   }
 

@@ -12,6 +12,12 @@ import 'package:trabalhofinal/tela_cca_crianca.dart';
 import 'package:trabalhofinal/tela_diario.dart';
 import 'package:trabalhofinal/tela_modo_crise.dart';
 import 'package:trabalhofinal/tela_principal.dart';
+import 'package:trabalhofinal/tela_dashboard.dart';
+import 'package:trabalhofinal/tela_relatorios.dart';
+import 'package:trabalhofinal/tela_compartilhar.dart';
+import 'package:trabalhofinal/tela_acessibilidade.dart';
+import 'package:trabalhofinal/tela_psicologo.dart';
+import 'package:trabalhofinal/Services/SimpleTTSService.dart';
 // Mantida para consistência com o arquivo original. Pode ser removida se não for usada.
 import 'package:crypto/crypto.dart';
 
@@ -110,13 +116,16 @@ class MyApp extends StatelessWidget {
             return const Scaffold(body: Center(child: Text("Erro: ID de Usuário ausente para CCA Criança.")));
           }
 
-          // Mock da função de fala (Ação simulada, idealmente configurada com um serviço de TTS)
-          void mockSpeak(String text) {
-            debugPrint("Mock Speak: $text");
+          // Usa o serviço TTS simples (flutter_tts)
+          final ttsService = SimpleTTSService();
+          void speakAction(String text) {
+            if (text.isNotEmpty) {
+              ttsService.speak(text);
+            }
           }
 
           return TelaCcaCrianca(
-            speakAction: mockSpeak,
+            speakAction: speakAction,
             userId: userId,
           );
         },
@@ -129,13 +138,16 @@ class MyApp extends StatelessWidget {
             return const Scaffold(body: Center(child: Text("Erro: ID de Usuário ausente para CAA Grande.")));
           }
 
-          // Mock da função de fala
-          void mockSpeak(String text) {
-            debugPrint("Mock Speak: $text");
+          // Usa o serviço TTS simples (flutter_tts)
+          final ttsService = SimpleTTSService();
+          void speakAction(String text) {
+            if (text.isNotEmpty) {
+              ttsService.speak(text);
+            }
           }
 
           return TelaCcaGrande(
-            speakAction: mockSpeak,
+            speakAction: speakAction,
             userId: userId,
           );
         },
@@ -152,6 +164,56 @@ class MyApp extends StatelessWidget {
                 child: Text("Erro: ID de Usuário ausente para Tela Diário.")));
           }
           return TelaDiario(userId: userId);
+        },
+
+        '/dashboard': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final int? userId = args?['userId'] as int?;
+
+          if (userId == null) {
+            return const Scaffold(body: Center(child: Text("Erro: ID de Usuário ausente para Dashboard.")));
+          }
+
+          return TelaDashboard(userId: userId);
+        },
+
+        '/relatorios': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final int? userId = args?['userId'] as int?;
+          final bool? isProfessional = args?['isProfessional'] as bool?;
+
+          if (userId == null) {
+            return const Scaffold(body: Center(child: Text("Erro: ID de Usuário ausente para Relatórios.")));
+          }
+
+          return TelaRelatorios(
+            userId: userId,
+            isProfessional: isProfessional ?? false,
+          );
+        },
+
+        '/compartilhar': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final int? userId = args?['userId'] as int?;
+
+          if (userId == null) {
+            return const Scaffold(body: Center(child: Text("Erro: ID de Usuário ausente para Compartilhar.")));
+          }
+
+          return TelaCompartilhar(userId: userId);
+        },
+
+        '/acessibilidade': (context) => const TelaAcessibilidade(),
+
+        '/psicologo': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final int? userId = args?['userId'] as int?;
+
+          if (userId == null) {
+            return const Scaffold(body: Center(child: Text("Erro: ID de Usuário ausente para Psicólogo.")));
+          }
+
+          return TelaPsicologo(userId: userId);
         },
       },
     );

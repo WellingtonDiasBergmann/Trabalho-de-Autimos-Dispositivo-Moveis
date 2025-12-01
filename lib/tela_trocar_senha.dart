@@ -92,112 +92,112 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
         child: Form(
           key: _validaTela,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
 
-            Padding( padding: const EdgeInsets.symmetric(),
-            child: Center(
-              child: Text(
-                "Redefine sua senha",
-                style: TextStyle(fontSize: 20),
-              ),
-            )
-            ),
-
-            //MARGIN ENTRE OS CAMPOS
-            const SizedBox(height: 20,),
-
-            //CAMPO PARA INFORMAR A SENHA
-            Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: TextFormField(
-                controller: _senhaController,
-                validator: (value) {
-                  if (value == null || value.isEmpty){
-                    return 'Informe a sua senha';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                  labelText: "Informe a sua senha",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                    borderSide: const BorderSide(color: Colors.blue, width: 2.0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-                  ),
-                ),
-                obscureText: true,
-              ),
-            ),
-
-            //MARGIN ENTRE OS DOIS CAMPOS
-            const SizedBox(height: 20),
-
-            //CAMPO PRA CONFIRMAR A SENHA
-            Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: TextFormField(
-                controller: _confirmarsenhaController,
-                validator: (value) {
-                  if (value == null || value.isEmpty){
-                    return 'Confirme a nova senha';
-                  }
-                  if (value != _senhaController.text) {
-                    return 'As senhas não coincidem.';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                  labelText: "Confirme a sua senha",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                    borderSide: const BorderSide(color: Colors.blue, width: 2.0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-                  ),
-                ),
-                obscureText: true,
-              ),
-            ),
-
-            //MARGIN ENTRE OS DOIS CAMPOS
-            const SizedBox(height: 20),
-
-            //BOTAO TROCAR SENHA
-            Padding( padding: const EdgeInsets.symmetric(horizontal: 70.0),
-              child: ElevatedButton(
-                  onPressed: _validaCampos,
-
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50.0),
+              Padding( padding: const EdgeInsets.symmetric(),
+                  child: Center(
+                    child: Text(
+                      "Redefine sua senha",
+                      style: TextStyle(fontSize: 20),
                     ),
-                  ),
-
-                  child: const Text(
-                    'Confirmar',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   )
               ),
-            ),
 
-          ],
+              //MARGIN ENTRE OS CAMPOS
+              const SizedBox(height: 20,),
+
+              //CAMPO PARA INFORMAR A SENHA
+              Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: TextFormField(
+                  controller: _senhaController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty){
+                      return 'Informe a sua senha';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Informe a sua senha",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                    ),
+                  ),
+                  obscureText: true,
+                ),
+              ),
+
+              //MARGIN ENTRE OS DOIS CAMPOS
+              const SizedBox(height: 20),
+
+              //CAMPO PRA CONFIRMAR A SENHA
+              Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: TextFormField(
+                  controller: _confirmarsenhaController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty){
+                      return 'Confirme a nova senha';
+                    }
+                    if (value != _senhaController.text) {
+                      return 'As senhas não coincidem.';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Confirme a sua senha",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                    ),
+                  ),
+                  obscureText: true,
+                ),
+              ),
+
+              //MARGIN ENTRE OS DOIS CAMPOS
+              const SizedBox(height: 20),
+
+              //BOTAO TROCAR SENHA
+              Padding( padding: const EdgeInsets.symmetric(horizontal: 70.0),
+                child: ElevatedButton(
+                    onPressed: _validaCampos,
+
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50.0),
+                      ),
+                    ),
+
+                    child: const Text(
+                      'Confirmar',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    )
+                ),
+              ),
+
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

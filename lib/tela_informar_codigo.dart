@@ -69,9 +69,9 @@ class _TelaInformarCodigoState extends State<TelaInformarCodigo> {
         //backgroundColor: Colors.blueGrey,
       ),
       body: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
-          child: Form(
-            key: _validaTela,
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
+        child: Form(
+          key: _validaTela,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -80,46 +80,46 @@ class _TelaInformarCodigoState extends State<TelaInformarCodigo> {
               //MARGIN ENTRE OS CAMPOS
               const SizedBox(height: 40,),
 
-            //TEXTO INFORMATIVO 1
-            Padding( padding: const EdgeInsets.symmetric(),
-              child: Center(
-                child: Text(
-                  "Digite o código de segurança que foi enviado ao seu e-mail",
-                  style: TextStyle(fontSize: 20),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-           ),
-
-            //MARGIN ENTRE OS CAMPOS
-            const SizedBox(height: 30,),
-
-            //CAMPO PARA INFORMAR A SENHA
-            Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: TextFormField(
-                controller: _codigoController,
-                validator: (value) {
-                  if (value == null || value.isEmpty){
-                    return 'Informe o código';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                  labelText: "Informe o código",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                    borderSide: const BorderSide(color: Colors.blue, width: 2.0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+              //TEXTO INFORMATIVO 1
+              Padding( padding: const EdgeInsets.symmetric(),
+                child: Center(
+                  child: Text(
+                    "Digite o código de segurança que foi enviado ao seu e-mail",
+                    style: TextStyle(fontSize: 20),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
-            ),
+
+              //MARGIN ENTRE OS CAMPOS
+              const SizedBox(height: 30,),
+
+              //CAMPO PARA INFORMAR A SENHA
+              Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: TextFormField(
+                  controller: _codigoController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty){
+                      return 'Informe o código';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Informe o código",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                    ),
+                  ),
+                ),
+              ),
 
               //MARGIN ENTRE OS CAMPOS
               const SizedBox(height: 30,),
@@ -145,9 +145,9 @@ class _TelaInformarCodigoState extends State<TelaInformarCodigo> {
                 ),
               ),
 
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

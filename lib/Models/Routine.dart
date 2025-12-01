@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:trabalhofinal/Models/RoutineStep.dart';
 
 class Routine {
@@ -29,11 +28,15 @@ class Routine {
   /// Geralmente usado para ler a tabela 'Rotina' do SQLite.
   factory Routine.fromMap(Map<String, dynamic> map, {List<RoutineStep>? steps}) {
     // Note: A lista de 'steps' deve ser lida separadamente do DB e injetada via o parâmetro nomeado.
+    // Aceita tanto snake_case (do banco) quanto camelCase (do modelo)
+    final pessoaIdValue = map['pessoaId'] ?? map['pessoa_id'];
+    final dataCriacaoValue = map['dataCriacao'] ?? map['data_criacao'];
+
     return Routine(
       id: map['id'] as int?,
-      pessoaId: map['pessoaId'] as int,
-      titulo: map['titulo'] as String,
-      dataCriacao: map['dataCriacao'] as String,
+      pessoaId: (pessoaIdValue as int?) ?? (pessoaIdValue as num?)?.toInt() ?? 0,
+      titulo: map['titulo'] as String? ?? '',
+      dataCriacao: dataCriacaoValue as String? ?? DateTime.now().toIso8601String(),
       lembrete: map['lembrete'] as String?,
       steps: steps, // Passos lidos do DB ou injetados do 'fromJson'
       needsSync: (map['needsSync'] as int? ?? 0) == 1, // Lê 1/0 e trata nulo

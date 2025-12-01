@@ -314,11 +314,16 @@ class TelaPrincipalState extends State<TelaPrincipal> {
       Navigator.pop(context);
     }
 
-    // Adiciona o userId como argumento APENAS para a rota /rotinas
+    // Adiciona o userId como argumento para rotas que precisam dele
     Map<String, dynamic>? arguments;
-    if (routeName == '/rotinas') {
-      // A rota /rotinas espera a chave 'userId'
+    if (routeName == '/rotinas' || routeName == '/caa_grande' || routeName == '/cca_crianca' || routeName == '/diario' || routeName == '/dashboard' || routeName == '/compartilhar' || routeName == '/psicologo') {
+      // Essas rotas esperam a chave 'userId'
       arguments = {'userId': widget.idUsuario};
+    } else if (routeName == '/relatorios') {
+      arguments = {
+        'userId': widget.idUsuario,
+        'isProfessional': widget.usuarioProfissional,
+      };
     }
 
     // 2. Chama o NavigationService para ir para a rota nomeada
@@ -341,13 +346,23 @@ class TelaPrincipalState extends State<TelaPrincipal> {
   // ====================================================================
   List<Map<String, dynamic>> _buildDrawerItens() {
     final List<Map<String, dynamic>> itens = [
-      // DASHBOARD
-      if(widget.usuarioProfissional || widget.usuarioAutista)
+      // DASHBOARD - APENAS PARA PROFISSIONAIS
+      if(widget.usuarioProfissional)
         {
-          'title': 'Dashboard (WIP)',
+          'title': 'Dashboard',
           'icon': Icons.analytics,
           'color': Colors.indigo,
           'routeName': '/dashboard', // ROTA NOMEADA
+          'type': 'navigate',
+        },
+
+      // PSICÓLOGO - APENAS PARA PROFISSIONAIS
+      if(widget.usuarioProfissional)
+        {
+          'title': 'Psicólogo',
+          'icon': Icons.psychology,
+          'color': Colors.purple,
+          'routeName': '/psicologo',
           'type': 'navigate',
         },
       // ROTINA
@@ -364,15 +379,15 @@ class TelaPrincipalState extends State<TelaPrincipal> {
           'title': 'CAA - Criança',
           'icon': Icons.speaker_phone,
           'color': Colors.yellow,
-          'routeName': '/caa_crianca', // ROTA NOMEADA
+          'routeName': '/cca_crianca', // ROTA NOMEADA
           'type': 'navigate',
         }
       else
         {
-          'title': 'CAA - Grade (WIP)',
+          'title': 'CAA - Grade',
           'icon': Icons.grid_view,
           'color': Colors.blue,
-          'routeName': '/caa_grade', // ROTA NOMEADA
+          'routeName': '/caa_grande', // ROTA NOMEADA
           'type': 'navigate',
         },
 
@@ -385,6 +400,35 @@ class TelaPrincipalState extends State<TelaPrincipal> {
           'routeName': '/diario', // ROTA NOMEADA
           'type': 'navigate',
         },
+
+      // RELATÓRIOS
+      if(widget.usuarioProfissional || widget.usuarioResponsavel)
+        {
+          'title': 'Relatórios',
+          'icon': Icons.bar_chart,
+          'color': Colors.purple,
+          'routeName': '/relatorios',
+          'type': 'navigate',
+        },
+
+      // COMPARTILHAR
+      if(widget.usuarioResponsavel)
+        {
+          'title': 'Compartilhar',
+          'icon': Icons.share,
+          'color': Colors.teal,
+          'routeName': '/compartilhar',
+          'type': 'navigate',
+        },
+
+      // ACESSIBILIDADE
+      {
+        'title': 'Acessibilidade',
+        'icon': Icons.accessibility_new,
+        'color': Colors.indigo,
+        'routeName': '/acessibilidade',
+        'type': 'navigate',
+      },
 
       // BOTÃO SAIR
       {

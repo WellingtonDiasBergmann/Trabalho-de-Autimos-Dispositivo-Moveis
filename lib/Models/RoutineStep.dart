@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 // O modelo foi mantido como 'immutable' para as propriedades finais
 // (id, routineId, isCompleted), mas as propriedades editáveis
 // (descricao, duracaoSegundos, ordem) foram tornadas mutáveis (non-final)
@@ -25,13 +23,18 @@ class RoutineStep {
 
   // --- Rotina de Desserialização (Map -> Objeto) ---
   factory RoutineStep.fromMap(Map<String, dynamic> map) {
+    // Aceita tanto snake_case (do banco) quanto camelCase (do modelo)
+    final routineIdValue = map['routineId'] ?? map['rotina_id'];
+    final duracaoSegundosValue = map['duracaoSegundos'] ?? map['duracao_segundos'];
+    final isCompletedValue = map['isCompleted'] ?? map['concluido'];
+
     return RoutineStep(
       id: map['id'] as int?,
-      routineId: map['routineId'] as int?,
-      descricao: map['descricao'] as String,
-      duracaoSegundos: map['duracaoSegundos'] as int,
-      ordem: map['ordem'] as int,
-      isCompleted: (map['isCompleted'] as int) == 1, // SQLite armazena booleanos como 0/1
+      routineId: routineIdValue as int?,
+      descricao: map['descricao'] as String? ?? '',
+      duracaoSegundos: (duracaoSegundosValue as int?) ?? (duracaoSegundosValue as num?)?.toInt() ?? 0,
+      ordem: (map['ordem'] as int?) ?? (map['ordem'] as num?)?.toInt() ?? 0,
+      isCompleted: (isCompletedValue is int ? isCompletedValue == 1 : (isCompletedValue as bool?) ?? false),
     );
   }
 
