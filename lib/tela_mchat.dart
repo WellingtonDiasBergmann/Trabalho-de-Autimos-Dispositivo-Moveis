@@ -120,7 +120,7 @@ class _TelaMCHATState extends State<TelaMCHAT> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar: $e')),
+        SnackBar(content: Text('.')),
       );
     } finally {
       setState(() {

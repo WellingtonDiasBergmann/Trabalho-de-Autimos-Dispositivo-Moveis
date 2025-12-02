@@ -56,7 +56,7 @@ class _TelaRelatorioAnamneseState extends State<TelaRelatorioAnamnese> {
     } catch (e) {
       debugPrint('Erro ao carregar relatório: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao carregar relatório: $e')),
+        SnackBar(content: Text('.')),
       );
     } finally {
       setState(() {
@@ -73,7 +73,7 @@ class _TelaRelatorioAnamneseState extends State<TelaRelatorioAnamnese> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao exportar PDF: $e')),
+        SnackBar(content: Text('.')),
       );
     }
   }
@@ -86,7 +86,7 @@ class _TelaRelatorioAnamneseState extends State<TelaRelatorioAnamnese> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao exportar CSV: $e')),
+        SnackBar(content: Text('.')),
       );
     }
   }

@@ -400,9 +400,7 @@ class _TelaAnamneseState extends State<TelaAnamnese> {
       );
       widget.onSave();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar: $e')),
-      );
+      debugPrint("erro");
     } finally {
       setState(() {
         _isSaving = false;
@@ -429,9 +427,7 @@ class _TelaAnamneseState extends State<TelaAnamnese> {
       widget.onSave();
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao finalizar: $e')),
-      );
+      debugPrint("erro");
     } finally {
       setState(() {
         _isSaving = false;

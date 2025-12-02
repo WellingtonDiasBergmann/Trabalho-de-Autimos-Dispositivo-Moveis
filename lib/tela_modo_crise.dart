@@ -55,7 +55,7 @@ class _TelaModoCriseState extends State<TelaModoCrise> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: $e')),
+        SnackBar(content: Text('.')),
       );
     }
   }

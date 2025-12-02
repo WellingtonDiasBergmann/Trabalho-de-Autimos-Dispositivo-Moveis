@@ -54,9 +54,6 @@ class _TelaPsicologoState extends State<TelaPsicologo> with SingleTickerProvider
       });
     } catch (e) {
       debugPrint('Erro ao carregar avaliações: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao carregar avaliações: $e')),
-      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -353,7 +350,7 @@ class _TelaPsicologoState extends State<TelaPsicologo> with SingleTickerProvider
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao finalizar: $e')),
+        SnackBar(content: Text('.')),
       );
     }
   }

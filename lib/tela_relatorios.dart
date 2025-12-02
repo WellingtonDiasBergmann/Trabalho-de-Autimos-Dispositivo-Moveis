@@ -111,7 +111,7 @@ class _TelaRelatoriosState extends State<TelaRelatorios> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao exportar CSV: $e')),
+        SnackBar(content: Text('.')),
       );
     }
   }
