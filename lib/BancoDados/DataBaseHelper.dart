@@ -4,7 +4,6 @@ import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
-// Models
 import 'package:trabalhofinal/Models/Board.dart';
 import 'package:trabalhofinal/Models/BoardItem.dart';
 import 'package:trabalhofinal/Models/Diario.dart';
@@ -29,10 +28,9 @@ class DataBaseHelper {
     String documentsPath = await getDatabasesPath();
     String path = join(documentsPath, 'spektrum_app.db');
 
-    // Versão 11 para adicionar server_id e needsSync em diarios
     return await openDatabase(
       path,
-      version: 11, // VERSÃO AUMENTADA PARA 11
+      version: 11, 
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -131,9 +129,7 @@ class DataBaseHelper {
       )
     ''');
 
-    // --- INSERÇÕES INICIAIS ---
 
-    // 1. Usuário Padrão do Sistema
     await db.insert(
       'pessoas',
       {
@@ -148,7 +144,6 @@ class DataBaseHelper {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    // 2. Usuário de Teste
     final initialPasswordHash = _hashSenhaSHA256("senha123");
     await db.insert(
       'pessoas',
@@ -162,7 +157,6 @@ class DataBaseHelper {
       },
     );
 
-    // 3. Board Padrão
     await db.insert(
       'boards',
       {
@@ -216,7 +210,6 @@ class DataBaseHelper {
       }
     }
 
-    // ** MIGRAÇÃO CRÍTICA PARA V8 **
     if (oldVersion < 8) {
       debugPrint('MIGRATION: V8 - Adicionando campos de sincronização a passos_rotina.');
       try {
@@ -227,25 +220,21 @@ class DataBaseHelper {
       }
     }
 
-    // ** MIGRAÇÃO CRÍTICA PARA V9 - Garantir que needsSync existe **
     if (oldVersion < 9) {
       debugPrint('MIGRATION: V9 - Verificando e adicionando coluna needsSync se necessário.');
       try {
-        // Verifica se a coluna existe consultando o schema
         final tableInfo = await db.rawQuery("PRAGMA table_info(rotinas)");
         final hasNeedsSync = tableInfo.any((column) => column['name'] == 'needsSync');
 
         if (!hasNeedsSync) {
           debugPrint('MIGRATION: Adicionando coluna needsSync à tabela rotinas.');
           await db.execute('ALTER TABLE rotinas ADD COLUMN needsSync INTEGER DEFAULT 1');
-          // Atualiza todas as rotinas existentes para marcar como não sincronizadas
           await db.execute("UPDATE rotinas SET needsSync = 1 WHERE needsSync IS NULL");
         } else {
           debugPrint('MIGRATION: Coluna needsSync já existe na tabela rotinas.');
         }
       } catch (e) {
         debugPrint("ERRO DB: Falha ao verificar/adicionar coluna needsSync: $e");
-        // Tenta adicionar mesmo assim (pode já existir)
         try {
           await db.execute('ALTER TABLE rotinas ADD COLUMN needsSync INTEGER DEFAULT 1');
         } catch (e2) {
@@ -254,11 +243,9 @@ class DataBaseHelper {
       }
     }
     
-    // ** MIGRAÇÃO V11 - Adicionar server_id e needsSync a board_items e diarios **
     if (oldVersion < 11) {
       debugPrint('MIGRATION: V11 - Adicionando colunas de sincronização.');
       try {
-        // Adiciona server_id em board_items
         final boardItemsInfo = await db.rawQuery("PRAGMA table_info(board_items)");
         final hasBoardItemsServerId = boardItemsInfo.any((column) => column['name'] == 'server_id');
         
@@ -267,7 +254,6 @@ class DataBaseHelper {
           debugPrint('MIGRATION V11: Coluna server_id adicionada em board_items.');
         }
         
-        // Adiciona server_id e needsSync em diarios
         final diariosInfo = await db.rawQuery("PRAGMA table_info(diarios)");
         final hasDiariosServerId = diariosInfo.any((column) => column['name'] == 'server_id');
         final hasDiariosNeedsSync = diariosInfo.any((column) => column['name'] == 'needsSync');
@@ -384,16 +370,14 @@ class DataBaseHelper {
     await clearAllData();
   }
 
-  // --- HELPERS DE MAPA ---
 
   Map<String, dynamic> _transformStepMapToSql(RoutineStep step) {
-    // CORREÇÃO ESSENCIAL: Mapeia as chaves do modelo (camelCase) para as colunas do DB (snake_case).
     return {
       'id': step.id,
-      'rotina_id': step.routineId, // Usa a FK como int?
+      'rotina_id': step.routineId, 
       'descricao': step.descricao,
       'duracao_segundos': step.duracaoSegundos,
-      'icone': null, // O modelo não tem 'icone', então passamos nulo se a coluna existe.
+      'icone': null, 
       'ordem': step.ordem,
       'concluido': step.isCompleted ? 1 : 0,
       'server_id': null,
@@ -401,7 +385,6 @@ class DataBaseHelper {
     };
   }
 
-  // USERS (Não alterados, apenas para completar o arquivo)
   Future<int> insertUser(User user) async {
     final db = await database;
     return await db.insert(
@@ -413,7 +396,6 @@ class DataBaseHelper {
 
   Future<int> updateUser(User user) async {
     final db = await database;
-    // Assume user.id is the local PK
     if (user.id == null) return 0;
     return await db.update(
       'pessoas',
@@ -435,9 +417,6 @@ class DataBaseHelper {
     return await db.delete('pessoas', where: 'id = ?', whereArgs: [id]);
   }
 
-  // =====================================================
-  // SINCRONIZAÇÃO: BUSCAR ROTINAS NÃO SINCRONIZADAS (PUSH)
-  // =====================================================
   Future<List<Routine>> getUnsyncedRoutines() async {
     final db = await database;
 
@@ -470,7 +449,6 @@ class DataBaseHelper {
       for (var map in rotinasMaps) {
         final rotina = Routine.fromMap(map);
 
-        // CORREÇÃO: Usa rotina.id (int?) como PK local
         final localRoutineId = rotina.id;
         if (localRoutineId == null) continue;
 
@@ -494,7 +472,6 @@ class DataBaseHelper {
     }
   }
 
-  // ROTINAS E PASSOS
   Future<void> insertRoutineWithSteps(Routine routine) async {
     final db = await database;
 
@@ -502,26 +479,19 @@ class DataBaseHelper {
       try {
         int routineId;
 
-        // 1. Prepara o mapa da rotina (corrigindo chaves do modelo para colunas do DB)
         final routineMap = {
           'id': routine.id, // O id pode ser nulo (insert) ou ter valor (sincronização/update)
           'pessoa_id': routine.pessoaId,
           'titulo': routine.titulo,
           'data_criacao': routine.dataCriacao,
           'lembrete': routine.lembrete,
-          'needsSync': 1, // Sempre marca para sincronizar após criação/update local
-          // Os outros campos de sincronização (server_id, durationInMinutes, localId)
-          // serão tratados se estiverem no modelo Routine ou forem necessários.
-          // Por enquanto, baseamos no toMap() da classe Routine que usa apenas as 5 primeiras.
+          'needsSync': 1, 
         };
 
 
-        // Assumimos que 'routine.id' (int?) é o PK local.
         final localPk = routine.id;
 
-        // 2. MANIPULAÇÃO DA ROTINA: UPDATE ou INSERT
         if (localPk != null && localPk > 0) {
-          // UPDATE
           await txn.update(
             'rotinas',
             routineMap,
@@ -530,7 +500,7 @@ class DataBaseHelper {
           );
           routineId = localPk;
         } else {
-          // INSERT
+          
           routineMap.remove('id');
           final insertedId = await txn.insert(
             'rotinas',
@@ -539,15 +509,12 @@ class DataBaseHelper {
           routineId = insertedId;
         }
 
-        // 3. EXCLUIR PASSOS ANTIGOS (Para re-inserir)
         await txn.delete('passos_rotina', where: 'rotina_id = ?', whereArgs: [routineId]);
 
-        // 4. INSERIR NOVOS PASSOS
         if (routine.steps != null && routine.steps!.isNotEmpty) {
           for (var step in routine.steps!) {
             final stepMap = _transformStepMapToSql(step);
 
-            // Garante que a FK está correta e remove IDs de passos para inserção
             final finalMap = Map<String, dynamic>.from(stepMap)
               ..['rotina_id'] = routineId
               ..remove('id'); // Remove o ID do passo para que o DB gere um novo
@@ -565,7 +532,7 @@ class DataBaseHelper {
   Future<int> updateRoutine(Routine routine) async {
     final db = await database;
 
-    final updatePk = routine.id; // CORREÇÃO: Usa routine.id que é o PK INTEGER.
+    final updatePk = routine.id; 
     if (updatePk == null) throw Exception('Não é possível atualizar uma Rotina sem um ID LOCAL válido.');
 
     return await db.transaction((txn) async {
@@ -579,10 +546,9 @@ class DataBaseHelper {
           'rotinas',
           routineMap,
           where: 'id = ?',
-          whereArgs: [updatePk] // Usa o PK INTEGER para o WHERE
+          whereArgs: [updatePk] 
       );
 
-      // 2. Atualiza passos (delete and re-insert)
       await txn.delete('passos_rotina', where: 'rotina_id = ?', whereArgs: [updatePk]);
 
       if (routine.steps != null && routine.steps!.isNotEmpty) {
@@ -616,19 +582,16 @@ class DataBaseHelper {
     for (var map in rotinasMaps) {
       final rotina = Routine.fromMap(map);
 
-      // Usa o ID LOCAL (int?) da rotina
       final routineId = rotina.id;
 
       if (routineId != null) {
         final stepsMaps = await db.query(
             'passos_rotina',
-            // Busca usando o ID LOCAL da rotina (int)
             where: 'rotina_id = ?',
-            whereArgs: [routineId], // CORREÇÃO: Usando rotina.id
+            whereArgs: [routineId], 
             orderBy: 'ordem ASC'
         );
 
-        // Anexa os passos
         rotinas.add(rotina.copyWith(
           steps: stepsMaps.map((s) => RoutineStep.fromMap(s)).toList(),
         ));
@@ -642,13 +605,11 @@ class DataBaseHelper {
 
   Future<int> updateRoutineStepStatus(int stepId, bool isCompleted) async {
     final db = await database;
-    // O stepId é a PK local do passo
     return await db.update('passos_rotina', {'concluido': isCompleted ? 1 : 0}, where: 'id = ?', whereArgs: [stepId]);
   }
 
   Future<int> resetRoutineSteps(int routineId) async {
     final db = await database;
-    // routineId aqui é o ID LOCAL da rotina
     return await db.update('passos_rotina', {'concluido': 0}, where: 'rotina_id = ?', whereArgs: [routineId]);
   }
 
@@ -657,36 +618,29 @@ class DataBaseHelper {
     final List<Map<String, dynamic>> routineIds = await db.query('rotinas', columns: ['id'], where: 'pessoa_id = ?', whereArgs: [userId]);
 
     if (routineIds.isEmpty) return 0;
-    // Pega os IDs inteiros.
     final ids = routineIds.map((map) => map['id'] as int).toList();
     final idsPlaceholder = List.generate(ids.length, (_) => '?').join(',');
 
-    // CORREÇÃO: cast para List<Object?> para whereArgs
     return await db.update('passos_rotina', {'concluido': 0}, where: 'rotina_id IN ($idsPlaceholder)', whereArgs: ids.cast<Object?>().toList());
   }
 
   Future<int> deleteRoutine(int id) async {
     final db = await database;
-    // id aqui é o ID LOCAL da rotina
     return await db.delete('rotinas', where: 'id = ?', whereArgs: [id]);
   }
 
-  // DIÁRIOS
   Future<int> insertOrUpdateDiarioEntry(Diario entry) async {
     final db = await database;
     final map = entry.toMap();
     
-    // Garante que needsSync está presente (marca como não sincronizado)
     if (!map.containsKey('needsSync')) {
       map['needsSync'] = 1;
     }
     
     if (entry.id != null) {
-      // UPDATE: Atualiza entrada existente
       final rowsAffected = await db.update('diarios', map, where: 'id = ?', whereArgs: [entry.id]);
       return rowsAffected > 0 ? entry.id! : 0;
     } else {
-      // INSERT: Nova entrada
       final newId = await db.insert('diarios', map, conflictAlgorithm: ConflictAlgorithm.replace);
       return newId;
     }
@@ -743,7 +697,6 @@ class DataBaseHelper {
     return await db.delete('diarios', where: 'id = ?', whereArgs: [id]);
   }
 
-  // BOARDS (Não alterados, apenas para completar o arquivo)
   Future<int> insertBoardWithItems(Board board) async {
     final db = await database;
     final boardId = await db.insert('boards', Map<String, dynamic>.from(board.toMap())..remove('id'), conflictAlgorithm: ConflictAlgorithm.replace);
@@ -825,7 +778,6 @@ class DataBaseHelper {
     return await db.delete('boards', where: 'id = ?', whereArgs: [id]);
   }
 
-  // DASHBOARD / RELATÓRIOS (Não alterados, apenas para completar o arquivo)
   Future<Map<String, int>> getRoutineCompletionStats(int userId) async {
     final db = await database;
     final result = await db.rawQuery('''

@@ -98,7 +98,6 @@ class _TelaRelatoriosState extends State<TelaRelatorios> {
         csv.writeln('$data,"${diario.humor}","${diario.sono ?? ""}","${diario.alimentacao ?? ""}","${diario.crise ?? ""}","${diario.observacoes ?? ""}"');
       }
 
-      // Em produção, salvaria o arquivo e compartilharia
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('CSV gerado com ${_diarios.length} registros'),
@@ -118,7 +117,6 @@ class _TelaRelatoriosState extends State<TelaRelatorios> {
   }
 
   Future<void> _exportarPDF() async {
-    // Em produção, usaria um pacote como pdf ou printing
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Exportação PDF em desenvolvimento')),
     );

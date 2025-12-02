@@ -72,7 +72,6 @@ class _TelaAcessibilidadeState extends State<TelaAcessibilidade> {
           ),
           const SizedBox(height: 24),
           
-          // Alto Contraste
           Card(
             child: SwitchListTile(
               title: const Text('Alto Contraste'),
@@ -89,7 +88,6 @@ class _TelaAcessibilidadeState extends State<TelaAcessibilidade> {
           ),
           const SizedBox(height: 12),
           
-          // Fonte Grande
           Card(
             child: SwitchListTile(
               title: const Text('Fonte Grande'),
@@ -106,7 +104,6 @@ class _TelaAcessibilidadeState extends State<TelaAcessibilidade> {
           ),
           const SizedBox(height: 12),
           
-          // Reduzir Animações
           Card(
             child: SwitchListTile(
               title: const Text('Reduzir Animações'),
@@ -123,7 +120,6 @@ class _TelaAcessibilidadeState extends State<TelaAcessibilidade> {
           ),
           const SizedBox(height: 24),
           
-          // Preview
           Card(
             color: _altoContraste ? Colors.black : Colors.grey.shade100,
             child: Padding(

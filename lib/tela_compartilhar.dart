@@ -41,8 +41,6 @@ class _TelaCompartilharState extends State<TelaCompartilhar> {
     });
 
     try {
-      // Em produção, chamaria a API para criar o compartilhamento
-      // await _apiService.createShare(...);
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -134,7 +132,6 @@ class _TelaCompartilharState extends State<TelaCompartilhar> {
             ),
             const SizedBox(height: 20),
             
-            // Data de Expiração (Opcional)
             ListTile(
               title: const Text('Data de Expiração (Opcional)'),
               subtitle: Text(
@@ -191,7 +188,6 @@ class _TelaCompartilharState extends State<TelaCompartilhar> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            // Em produção, listaria os compartilhamentos ativos
             const Card(
               child: ListTile(
                 leading: Icon(Icons.person),

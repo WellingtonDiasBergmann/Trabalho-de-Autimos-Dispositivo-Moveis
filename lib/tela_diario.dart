@@ -7,12 +7,9 @@ import 'package:trabalhofinal/Services/SyncService.dart';
 // Cores Temáticas
 const Color primaryColor = Colors.blue;
 
-// ----------------------------------------------------------------------
-// 1. StatefulWidget Principal (TelaDiario)
-// ----------------------------------------------------------------------
+
 
 class TelaDiario extends StatefulWidget {
-  // ⭐️ Adicionando userId ao construtor
   final int userId;
 
   const TelaDiario({super.key, required this.userId});
@@ -22,7 +19,6 @@ class TelaDiario extends StatefulWidget {
 }
 
 class _TelaDiarioState extends State<TelaDiario> {
-  // ⭐️ Inicialização do serviço de banco de dados e estados de carregamento
   late final DataBaseHelper _dbService = DataBaseHelper();
   List<EntradaDiario> _entradas = [];
   bool _isLoading = true;
@@ -33,17 +29,13 @@ class _TelaDiarioState extends State<TelaDiario> {
     _loadItemsFromDb();
   }
 
-  // ----------------------------------------------------------------------
-  // 2. Lógica de Persistência (SQL)
-  // ----------------------------------------------------------------------
-
+  
   Future<void> _loadItemsFromDb() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // ⭐️ Chama o DB Helper para carregar itens filtrando pelo userId
       final List<Diario> diarioMaps = await _dbService.getDiarioEntriesByUserId(widget.userId);
 
       setState(() {
@@ -70,7 +62,6 @@ class _TelaDiarioState extends State<TelaDiario> {
 
       debugPrint('_salvarEntrada: Salvando entrada de diário para usuário ${widget.userId}');
       
-      // ⭐️ Insere ou atualiza no banco de dados
       final int newId = await _dbService.insertOrUpdateDiarioEntry(diario);
       
       debugPrint('_salvarEntrada: Entrada salva com ID local: $newId');
@@ -113,7 +104,6 @@ class _TelaDiarioState extends State<TelaDiario> {
     if (entrada.id == null) return; // Não exclui se não tem ID de DB
 
     try {
-      // ⭐️ Exclui no banco de dados
       await _dbService.deleteDiarioEntry(entrada.id!);
 
       // Recarrega a lista
@@ -126,9 +116,7 @@ class _TelaDiarioState extends State<TelaDiario> {
     }
   }
 
-  // ----------------------------------------------------------------------
-  // 3. Funções de Ação e UI
-  // ----------------------------------------------------------------------
+
 
   void _showMessage(BuildContext context, String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -168,15 +156,11 @@ class _TelaDiarioState extends State<TelaDiario> {
   }
 
 
-  // ----------------------------------------------------------------------
-  // 4. Widgets de Construção da UI
-  // ----------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // ⭐️ Atualizando o título com o userId
         title: Text("Diário (Usuário ${widget.userId})"),
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
@@ -278,7 +262,6 @@ class _TelaDiarioState extends State<TelaDiario> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Botão ADICIONAR (+)
               _buildActionButton(
                 context,
                 Icons.add,
@@ -288,7 +271,6 @@ class _TelaDiarioState extends State<TelaDiario> {
               ),
               const SizedBox(width: 15),
 
-              // Botão EXPORTAR/DOCUMENTO (Documento) - Ação Placeholder
               _buildActionButton(
                 context,
                 Icons.description,
@@ -322,9 +304,7 @@ class _TelaDiarioState extends State<TelaDiario> {
   }
 }
 
-// ----------------------------------------------------------------------
-// 5. Componente Stateful para o Card Individual (Visualização)
-// ----------------------------------------------------------------------
+
 
 class _EntradaDiarioCard extends StatefulWidget {
   final EntradaDiario entrada;
@@ -493,9 +473,7 @@ class _EntradaDiarioCardState extends State<_EntradaDiarioCard> {
   }
 }
 
-// ----------------------------------------------------------------------
-// 6. Componente Stateful para o Modal de Edição/Criação
-// ----------------------------------------------------------------------
+
 
 class _ModalEdicaoDiario extends StatefulWidget {
   final EntradaDiario? entradaOriginal;

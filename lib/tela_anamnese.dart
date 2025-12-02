@@ -115,7 +115,7 @@ class _TelaAnamneseState extends State<TelaAnamnese> {
       _loadAnamneseData();
     } else {
       _dataAvaliacao = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      _aplicadorController.text = 'Dr(a). ${widget.userId}'; // Em produção, pegaria do usuário logado
+      _aplicadorController.text = 'Dr(a). ${widget.userId}'; 
     }
   }
 

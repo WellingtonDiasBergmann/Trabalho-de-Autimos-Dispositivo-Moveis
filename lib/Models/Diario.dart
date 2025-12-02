@@ -1,8 +1,6 @@
 import 'package:intl/intl.dart';
 
-// ----------------------------------------------------------------------
-// Constantes e Dados de Opções
-// ----------------------------------------------------------------------
+
 
 const List<String> CATEGORIES = ['SONO', 'HUMOR', 'ALIMENTAÇÃO', 'CRISE'];
 
@@ -13,9 +11,7 @@ const Map<String, List<String>> OPTIONS = {
   'CRISE': ['Nenhuma', 'Leve', 'Moderada', 'Grave'],
 };
 
-// ----------------------------------------------------------------------
-// Modelo de Dados para o Banco de Dados (SQLite - Tabela Diario)
-// ----------------------------------------------------------------------
+
 
 class Diario {
   final int? id; // ID da entrada no DB (pode ser null se for nova)
@@ -132,7 +128,6 @@ class EntradaDiario {
     );
   }
 
-  // Converte o modelo de DB (Diario) para o modelo de UI (EntradaDiario)
   factory EntradaDiario.fromDiario(Diario diario) {
     // Tenta parsear a data em diferentes formatos
     DateTime dataParsed;

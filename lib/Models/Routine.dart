@@ -7,7 +7,7 @@ class Routine {
   final int pessoaId;
   final String dataCriacao;
   final List<RoutineStep>? steps; // Lista de passos (aninhada)
-  final bool needsSync; // <-- ADICIONADO!
+  final bool needsSync; 
 
   // Propriedades mutáveis (para edição)
   String titulo;
@@ -20,15 +20,12 @@ class Routine {
     required this.dataCriacao,
     this.lembrete,
     this.steps,
-    bool needsSync = false // <-- Correção: Removido 'final'
-  }) : this.needsSync = needsSync; // <-- Inicializa o campo 'final'
+    bool needsSync = false 
+  }) : this.needsSync = needsSync;
 
-  // --- 1. Rotina de Desserialização: Construtor de Fábrica 'fromMap' (Map -> Objeto) ---
-  /// Cria uma instância de [Routine] a partir de um Map.
-  /// Geralmente usado para ler a tabela 'Rotina' do SQLite.
+ 
   factory Routine.fromMap(Map<String, dynamic> map, {List<RoutineStep>? steps}) {
-    // Note: A lista de 'steps' deve ser lida separadamente do DB e injetada via o parâmetro nomeado.
-    // Aceita tanto snake_case (do banco) quanto camelCase (do modelo)
+    
     final pessoaIdValue = map['pessoaId'] ?? map['pessoa_id'];
     final dataCriacaoValue = map['dataCriacao'] ?? map['data_criacao'];
 
@@ -38,16 +35,13 @@ class Routine {
       titulo: map['titulo'] as String? ?? '',
       dataCriacao: dataCriacaoValue as String? ?? DateTime.now().toIso8601String(),
       lembrete: map['lembrete'] as String?,
-      steps: steps, // Passos lidos do DB ou injetados do 'fromJson'
-      needsSync: (map['needsSync'] as int? ?? 0) == 1, // Lê 1/0 e trata nulo
+      steps: steps, 
+      needsSync: (map['needsSync'] as int? ?? 0) == 1, 
     );
   }
 
-  // --- 2. Rotina de Serialização: Método 'toMap' (Objeto -> Map) ---
-  /// Converte a instância para um Map.
-  /// Usado para salvar a [Routine] na sua própria tabela no SQLite.
+  
   Map<String, dynamic> toMap() {
-    // 'steps' NÃO é incluído aqui, pois é salvo em uma tabela separada (RoutineStep)
     return {
       'id': id,
       'pessoaId': pessoaId,
@@ -58,9 +52,6 @@ class Routine {
     };
   }
 
-  // --- 3. Rotina de Serialização Completa: Método 'toJson' (Objeto -> JSON String) ---
-  /// Converte a instância completa (incluindo passos aninhados) para uma string JSON.
-  /// Usado para intercâmbio de dados (ex: APIs ou arquivos).
   String toJson() {
     final Map<String, dynamic> map = toMap();
     // Adiciona a lista de passos serializada ao Map base para exportação JSON.
@@ -68,8 +59,6 @@ class Routine {
     return json.encode(map);
   }
 
-  // --- 4. Rotina de Desserialização Completa: Construtor de Fábrica 'fromJson' (JSON String -> Objeto) ---
-  /// Cria uma instância de [Routine] a partir de uma string JSON (que contém a lista de passos).
   factory Routine.fromJson(String source) {
     final map = json.decode(source) as Map<String, dynamic>;
 
@@ -90,7 +79,7 @@ class Routine {
     String? dataCriacao,
     String? lembrete,
     List<RoutineStep>? steps,
-    bool? needsSync, // <-- ADICIONADO!
+    bool? needsSync, 
   }) {
     return Routine(
       id: id ?? this.id,
@@ -99,7 +88,7 @@ class Routine {
       dataCriacao: dataCriacao ?? this.dataCriacao,
       lembrete: lembrete ?? this.lembrete,
       steps: steps ?? this.steps,
-      needsSync: needsSync ?? this.needsSync, // <-- USADO!
+      needsSync: needsSync ?? this.needsSync, 
     );
   }
 }

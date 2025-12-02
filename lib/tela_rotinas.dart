@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// Certifique-se de que este caminho está correto:
 import 'package:trabalhofinal/BancoDados/DataBaseHelper.dart';
-// Certifique-se de que estes imports estão corretos em seu projeto:
 import 'package:trabalhofinal/Models/Routine.dart';
 import 'package:trabalhofinal/Models/RoutineStep.dart';
 import 'dart:math';
 
-// ----------------------------------------------------------------------
-// 2. StatefulWidget para Gerenciar Estado e Edição
-// ----------------------------------------------------------------------
+
 
 class TelaRotinas extends StatefulWidget {
-  // Você precisará de um ID de Usuário para carregar as rotinas corretas
   final int userId;
 
   const TelaRotinas({super.key, required this.userId});
@@ -24,14 +19,12 @@ class TelaRotinas extends StatefulWidget {
 class _TelaRotinasState extends State<TelaRotinas> {
   // Inicialização do DB Helper
   final DataBaseHelper _dbService = DataBaseHelper();
-  final Random _random = Random(); // Simulando um gerador de UUID/ID temporário
+  final Random _random = Random(); 
 
   bool _isEditing = false;
-  // Agora, estas listas usam o modelo real: Routine
   List<Routine> _rotinas = [];
   List<Routine> _rotinasEditavel = [];
-  bool _isLoading = true; // Novo estado de carregamento
-
+  bool _isLoading = true; 
   @override
   void initState() {
     super.initState();
@@ -39,11 +32,8 @@ class _TelaRotinasState extends State<TelaRotinas> {
     _loadRotinas();
   }
 
-  // ----------------------------------------------------------------------
-  // 3. Funções de Ação e Estado (AJUSTADAS PARA SQL)
-  // ----------------------------------------------------------------------
+  
 
-  // Novo: Carrega as rotinas do banco de dados
   Future<void> _loadRotinas() async {
     // Evita múltiplas chamadas simultâneas, mas permite o carregamento inicial
     if (_isLoading && _rotinas.isNotEmpty) {
@@ -59,7 +49,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
       final loadedRoutines = await _dbService.getAllRoutines(widget.userId);
 
       setState(() {
-        // Mapeamos para garantir que a lista de passos (steps) nunca seja nula,
         _rotinas = loadedRoutines.map((r) => r.copyWith(steps: r.steps ?? [])).toList();
       });
     } catch (e) {
@@ -77,31 +66,24 @@ class _TelaRotinasState extends State<TelaRotinas> {
     setState(() {
       _isEditing = !_isEditing;
       if (_isEditing) {
-        // Ao entrar no modo de edição, copia a lista principal para a lista temporária
-        // USANDO DEEP COPY com copyWith para não modificar a lista persistida.
-        // É essencial usar .toList() após o map para criar uma nova lista.
+    
         _rotinasEditavel = _rotinas.map((r) => r.copyWith(
             steps: r.steps?.map((p) => p.copyWith()).toList()
         )).toList();
       } else {
-        // Se cancelou, limpamos e voltamos aos dados persistidos.
         _rotinasEditavel = [];
       }
     });
-    // Adiciona rotina inicial se a lista estiver vazia e entramos em modo de edição
-    if (_isEditing && _rotinasEditavel.isEmpty) { // Usamos _rotinasEditavel para verificar a lista de edição
+    if (_isEditing && _rotinasEditavel.isEmpty) { 
       _adicionarRotina();
     }
   }
 
-  // Adiciona uma nova rotina (SÓ FUNCIONA NO MODO EDIÇÃO)
   void _adicionarRotina() {
     if (!_isEditing) return;
     setState(() {
-      // Cria um ID temporário negativo para rotinas novas.
       final temporaryId = -(_random.nextInt(1000000) + 1);
 
-      // Aqui os nomes dos campos estão corrigidos para o modelo Routine
       final newRoutine = Routine(
         id: temporaryId,
         pessoaId: widget.userId,
@@ -109,10 +91,9 @@ class _TelaRotinasState extends State<TelaRotinas> {
         dataCriacao: DateTime.now().toIso8601String().substring(0, 10),
         lembrete: "00:00",
         steps: [
-          // Aqui os nomes dos campos estão corrigidos para o modelo RoutineStep
           RoutineStep(
               id: null,
-              routineId: null, // Será ajustado pelo DB Helper
+              routineId: null, 
               descricao: "Novo Passo",
               duracaoSegundos: 60,
               ordem: 0,
@@ -124,9 +105,7 @@ class _TelaRotinasState extends State<TelaRotinas> {
     });
   }
 
-  // Função de salvamento (AGORA REAL)
   void _salvarRotinas() async {
-    // 1. Validar se há rotinas com título vazio
     final rotinaInvalida = _rotinasEditavel.any((r) => r.titulo.trim().isEmpty);
     if (rotinaInvalida) {
       _showMessage(context, "Todas as rotinas devem ter um título.");
@@ -134,26 +113,20 @@ class _TelaRotinasState extends State<TelaRotinas> {
     }
 
     debugPrint('[FLUXO DB - INÍCIO] Rotinas a serem processadas: ${_rotinasEditavel.length}');
-    // Mostrar feedback visual imediato
     if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Salvando Rotinas..."), duration: Duration(seconds: 1)));
 
     try {
-      // 2. Itera sobre a lista editável e salva/atualiza
       for (var rotina in _rotinasEditavel) {
         debugPrint('[FLUXO DB - PROCESSANDO] Tentando salvar Rotina ID: ${rotina.id}, Título: ${rotina.titulo}');
 
-        // O DB Helper deve ser robusto o suficiente para:
-        // - Inserir se ID for negativo (novo) e retornar o novo ID
-        // - Atualizar se ID for positivo (existente)
+     
         await _dbService.insertRoutineWithSteps(rotina);
 
         debugPrint('[FLUXO DB - SUCESSO PARCIAL] Rotina salva/atualizada com sucesso: ${rotina.titulo}');
       }
 
-      // 3. Após salvar todos, recarrega a lista do banco de dados (obtendo os novos IDs)
       await _loadRotinas();
 
-      // 4. Conclui a edição
       setState(() {
         _isEditing = false;
         _rotinasEditavel = [];
@@ -167,17 +140,14 @@ class _TelaRotinasState extends State<TelaRotinas> {
     }
   }
 
-  // Adiciona um passo a uma rotina específica (SÓ FUNCIONA NO MODO EDIÇÃO)
   void _adicionarPasso(Routine rotina) {
     if (!_isEditing) return;
     setState(() {
-      // Encontra o index da rotina na lista _rotinasEditavel
       final index = _rotinasEditavel.indexWhere((r) => r.id == rotina.id);
       if (index != -1) {
         final rotinaEditada = _rotinasEditavel[index];
         final newOrder = rotinaEditada.steps != null ? rotinaEditada.steps!.length : 0;
 
-        // Cria o novo passo com o próximo número de ordem
         rotinaEditada.steps!.add(RoutineStep(
             id: null,
             routineId: rotinaEditada.id,
@@ -190,7 +160,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
     });
   }
 
-  // Alterna o estado de conclusão de um passo (SÓ FUNCIONA FORA DO MODO EDIÇÃO)
   void _toggleStepCompletion(Routine rotina, RoutineStep passo) async {
     if (_isEditing) {
       _showMessage(context, "Saia do modo de edição para marcar a rotina.");
@@ -241,20 +210,16 @@ class _TelaRotinasState extends State<TelaRotinas> {
 
   // Função auxiliar para exibir mensagens
   void _showMessage(BuildContext context, String message) {
-    // Verifica se o widget está montado antes de mostrar o SnackBar
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
 
-  // ----------------------------------------------------------------------
-  // 4. Widgets de Construção da UI
-  // ----------------------------------------------------------------------
+ 
 
   @override
   Widget build(BuildContext context) {
-    // Usa o getter 'titulo' e outras propriedades corrigidas no modelo Routine
     final List<Routine> rotinasParaExibir = _isEditing ? _rotinasEditavel : _rotinas;
 
     return Scaffold(
@@ -327,7 +292,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título da Seção Nome da Rotina
           const Text(
             "Nome da rotina",
             style: TextStyle(
@@ -338,7 +302,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
           ),
           const SizedBox(height: 8),
 
-          // Campo de Nome e Horário
           Row(
             children: [
               Expanded(
@@ -346,13 +309,12 @@ class _TelaRotinasState extends State<TelaRotinas> {
                     ? _buildEditableField(
                   initialValue: rotina.titulo,
                   hintText: "Nome da rotina",
-                  onChanged: (newValue) => rotina.titulo = newValue, // Correto: campo 'titulo' é mutável
+                  onChanged: (newValue) => rotina.titulo = newValue, 
                 )
                     : _buildDisplayBox(rotina.titulo, isTitle: true),
               ),
               const SizedBox(width: 10),
 
-              // O campo de Horário (Lembrete)
               SizedBox(
                 width: 70,
                 child: _isEditing
@@ -364,7 +326,7 @@ class _TelaRotinasState extends State<TelaRotinas> {
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9:]')),
                     LengthLimitingTextInputFormatter(5),
                   ],
-                  onChanged: (newValue) => rotina.lembrete = newValue, // Correto: campo 'lembrete' é mutável
+                  onChanged: (newValue) => rotina.lembrete = newValue, 
                 )
                     : _buildDisplayBox(rotina.lembrete ?? '00:00', isTitle: false, width: 70),
               ),
@@ -373,7 +335,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
 
           const SizedBox(height: 20),
 
-          // Título da Seção Passos
           const Text(
             "Passos",
             style: TextStyle(
@@ -384,7 +345,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
           ),
           const SizedBox(height: 8),
 
-          // Lista de Passos
           ...(rotina.steps ?? []).asMap().entries.map((entry) {
             final RoutineStep passo = entry.value;
 
@@ -392,7 +352,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
               padding: const EdgeInsets.only(bottom: 10.0),
               child: Row(
                 children: [
-                  // Ícone de Conclusão (interativo fora do modo de edição)
                   GestureDetector(
                     onTap: () => _toggleStepCompletion(rotina, passo),
                     child: Icon(
@@ -404,47 +363,39 @@ class _TelaRotinasState extends State<TelaRotinas> {
                   const SizedBox(width: 10),
 
                   Expanded(
-                    // O campo de Descrição do Passo (com strikethrough se completo)
                     child: _isEditing
                         ? _buildEditableField(
-                      initialValue: passo.descricao, // Usa 'descricao' do modelo RoutineStep
+                      initialValue: passo.descricao, 
                       hintText: "Descrição do passo",
-                      onChanged: (newValue) => passo.descricao = newValue, // Correto: campo 'descricao' é mutável no RoutineStep
+                      onChanged: (newValue) => passo.descricao = newValue, 
                     )
                         : _buildDisplayBox(passo.descricao, isTitle: false, isComplete: passo.isCompleted),
                   ),
                   const SizedBox(width: 10),
 
-                  // O campo de Duração do Passo
                   SizedBox(
                     width: 70,
                     child: _isEditing
                         ? _buildEditableField(
-                      // Exibe em minutos
-                      initialValue: "${(passo.duracaoSegundos) ~/ 60}", // Usa 'duracaoSegundos'
+                      initialValue: "${(passo.duracaoSegundos) ~/ 60}", 
                       hintText: "X min",
-                      keyboardType: TextInputType.number, // Apenas números
+                      keyboardType: TextInputType.number, 
                       inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly, // Garante que só há dígitos
-                        LengthLimitingTextInputFormatter(3), // Limita para não ter números absurdos
+                        FilteringTextInputFormatter.digitsOnly, 
+                        LengthLimitingTextInputFormatter(3), 
                       ],
                       onChanged: (newValue) {
-                        // Tenta converter o valor para um inteiro e salva em segundos
                         final minutes = int.tryParse(newValue) ?? 1;
-                        // Correto: campo 'duracaoSegundos' é mutável no RoutineStep
                         passo.duracaoSegundos = minutes * 60;
                       },
                     )
-                    // Exibe em minutos
                         : _buildDisplayBox("${(passo.duracaoSegundos) ~/ 60} min", isTitle: false, width: 70, isComplete: passo.isCompleted),
                   ),
 
-                  // Botão de Excluir Passo (apenas em modo de edição)
                   if (_isEditing) ...[
                     const SizedBox(width: 5),
                     GestureDetector(
                       onTap: () {
-                        // Encontra a rotina atual na lista editável
                         final rotinaAtualIndex = _rotinasEditavel.indexWhere((r) => r.id == rotina.id);
 
                         if (rotinaAtualIndex != -1) {
@@ -455,9 +406,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
                             setState(() {
                               rotinaAtual.steps!.removeAt(indexParaRemover);
 
-                              // >>> CORREÇÃO APLICADA AQUI:
-                              // Após remover um passo, reordenamos todos os passos restantes
-                              // para que o campo `ordem` seja sequencial (0, 1, 2...)
                               for (int i = 0; i < rotinaAtual.steps!.length; i++) {
                                 // Assume que o campo `ordem` é mutável no modelo RoutineStep
                                 rotinaAtual.steps![i].ordem = i;
@@ -479,7 +427,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
 
           const SizedBox(height: 15),
 
-          // Botão Adicionar passo (apenas em modo de edição)
           if (_isEditing)
             Center(
               child: InkWell(
@@ -505,7 +452,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
               ),
             ),
 
-          // Botão de Excluir Rotina (apenas em modo de edição)
           if (_isEditing)
             Padding(
               padding: const EdgeInsets.only(top: 15.0),
@@ -514,7 +460,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
                   icon: const Icon(Icons.delete_forever, color: Colors.red),
                   label: const Text("Excluir Rotina", style: TextStyle(color: Colors.red)),
                   onPressed: () async {
-                    // CORREÇÃO: Usar 'rotina' (o argumento) em vez de 'rotinas' (escopo incorreto)
                     final rotinaRemovida = rotina.id != null && rotina.id! > 0
                         ? _rotinasEditavel.firstWhere((r) => r.id == rotina.id)
                         : null;
@@ -528,7 +473,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
                       await _dbService.deleteRoutine(rotina.id!);
                       _showMessage(context, "Rotina '${rotina.titulo}' excluída permanentemente.");
                       // Recarrega a lista principal após exclusão (se necessário)
-                      // O ideal é recarregar só se houver mais rotinas a salvar, mas vamos manter o _loadRotinas por segurança.
                       await _loadRotinas();
                     } else {
                       _showMessage(context, "Rotina '${rotina.titulo}' removida da edição (ainda não estava salva).");
@@ -542,7 +486,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
     );
   }
 
-  // Componente para a CAIXA DE VISUALIZAÇÃO (Modo não-edição, com isComplete)
   Widget _buildDisplayBox(String text, {required bool isTitle, double? width, bool isComplete = false}) {
     return Container(
       width: width,
@@ -558,7 +501,7 @@ class _TelaRotinasState extends State<TelaRotinas> {
           fontSize: isTitle ? 16 : 14,
           fontWeight: isTitle ? FontWeight.w500 : FontWeight.normal,
           color: isComplete ? Colors.grey.shade500 : Colors.grey.shade700,
-          decoration: isComplete ? TextDecoration.lineThrough : TextDecoration.none, // RISCO NO TEXTO!
+          decoration: isComplete ? TextDecoration.lineThrough : TextDecoration.none, 
           decorationColor: Colors.black54,
         ),
         overflow: TextOverflow.ellipsis,
@@ -566,7 +509,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
     );
   }
 
-  // Componente para o CAMPO DE TEXTO EDITÁVEL (Modo edição)
   Widget _buildEditableField({
     required String initialValue,
     String? hintText,
@@ -574,10 +516,7 @@ class _TelaRotinasState extends State<TelaRotinas> {
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
   }) {
-    // Usamos um Builder para criar um TextEditingController temporário,
-    // garantindo que ele não seja recriado a cada setState.
-    // Como estamos usando initialValue e onChanged (que modifica o objeto Routine/RoutineStep diretamente),
-    // vamos usar o TextFormField simples, que já está configurado para o estado mutável do objeto.
+    
     return TextFormField(
       initialValue: initialValue,
       onChanged: onChanged,
@@ -609,9 +548,7 @@ class _TelaRotinasState extends State<TelaRotinas> {
     );
   }
 
-  // A função agora retorna o(s) botão(ões) flutuante(s) diretamente.
   Widget _buildFloatingActionButtons(BuildContext context) {
-    // Se estiver no modo de edição, exibe a barra com os 3 botões.
     if (_isEditing) {
       return Container(
         margin: const EdgeInsets.only(bottom: 25.0),
@@ -630,7 +567,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Botão ADICIONAR
             _buildActionButton(
               context: context,
               icon: Icons.add,
@@ -640,7 +576,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
             ),
             const SizedBox(width: 15),
 
-            // Botão CANCELAR (Substitui o Editar no modo de edição)
             _buildActionButton(
               context: context,
               icon: Icons.cancel_outlined,
@@ -650,7 +585,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
             ),
             const SizedBox(width: 15),
 
-            // Botão SALVAR
             _buildActionButton(
               context: context,
               icon: Icons.save,
@@ -663,7 +597,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
       );
     }
 
-    // Se NÃO estiver no modo de edição (estado inicial), exibe apenas o botão EDITAR (lápis)
     return Container(
       margin: const EdgeInsets.only(bottom: 25.0),
       child: _buildActionButton(
@@ -676,7 +609,6 @@ class _TelaRotinasState extends State<TelaRotinas> {
     );
   }
 
-  // Componente para um botão flutuante
   Widget _buildActionButton({
     required BuildContext context,
     required IconData icon,

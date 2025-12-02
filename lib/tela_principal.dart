@@ -8,11 +8,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:trabalhofinal/Services/SyncService.dart';
 import 'package:trabalhofinal/Services/GeminiTTSService.dart';
 import 'package:trabalhofinal/services/NavegacaoService.dart';
-import 'package:trabalhofinal/main.dart'; // <--- NOVO: Importa MyHomePage do main.dart
+import 'package:trabalhofinal/main.dart'; 
 
-// ====================================================================
-// CLASSE DE CORES
-// ====================================================================
 class AppColors {
   static const Color primaryBlue = Color(0xFF1976D2);
   static const Color secondaryOrange = Color(0xFFFF9800);
@@ -20,10 +17,7 @@ class AppColors {
   static const Color cardGreen = Color(0xFF66BB6A);
 }
 
-// ====================================================================
-// PLACEHOLDER: CLASSE CommunicationItem
-// Se CommunicationItem já existir em tela_caa_grande.dart, remova esta definição.
-// ====================================================================
+
 class CommunicationItem {
   final String id;
   final Map<String, dynamic> data;
@@ -34,9 +28,7 @@ class CommunicationItem {
 
 enum StatusCarregamentoAPI {carregando, sucesso, erro}
 
-// ====================================================================
-// CLASSE PRINCIPAL
-// ====================================================================
+
 
 class TelaPrincipal extends StatefulWidget {
   final int idUsuario;
@@ -61,61 +53,50 @@ class TelaPrincipal extends StatefulWidget {
 }
 
 class TelaPrincipalState extends State<TelaPrincipal> {
-  // ATENÇÃO: A CHAVE DEVE SER MANTIDA EM SEGREDO EM PRODUÇÃO.
+
   final String _chaveAPI = '77932137b7964299adb200233250811';
 
   // Instância dos serviços
   late final GeminiTTSService _ttsService;
-  final SyncService _syncService = SyncService(); // INSTÂNCIA DO SYNCSERVICE
+  final SyncService _syncService = SyncService(); 
 
-  // ESTADOS PARA LOCALIZAÇÃO E CLIMA
   double? _latitude;
   double? _longitude;
   String _cidadeClima = "Buscando localização...";
   StatusCarregamentoAPI _statusClima = StatusCarregamentoAPI.carregando;
 
-  //LIST DO MENU LATERAL
+
   late List<Map<String, dynamic>> _drawerItens;
-  //RELOGIO NA TELA
+
   late DateTime _agora;
   Timer? _timer;
   bool _foiInicializado = false;
 
-  //CLIMA NA TELA
+
   final Map<String, dynamic> _climaAtual = {
     'icon': Icons.cloud_queue,
     'descricao': "Buscando clima...",
     'temperatura': "..."
   };
 
-  // ====================================================================
-  // FUNÇÃO DE LOGOUT
-  // ====================================================================
+
   void _handleLogout() async {
-    // 1. Chama o método de logout para limpar dados locais e token
     await _syncService.sair();
 
-    // 2. Navega para a tela de login (MyHomePage no main.dart) e remove todas as
-    // telas anteriores da pilha. Isso impede que o usuário volte para
-    // a TelaPrincipal após o logout.
+   
     if (mounted) {
-      // Primeiro, garante que o Drawer seja fechado, caso esteja aberto.
       if (Navigator.of(context).canPop()) {
         Navigator.pop(context);
       }
 
-      // CORREÇÃO: Usando MyHomePage, conforme solicitado
       Navigator.of(context).pushAndRemoveUntil(
-        // Passa o argumento 'title' que é obrigatório no construtor de MyHomePage
         MaterialPageRoute(builder: (context) => const MyHomePage(title: 'Spektrum')),
             (Route<dynamic> route) => false,
       );
     }
   }
 
-  // ====================================================================
-  // FUNÇÕES PLACEHOLDER (COM TTS REAL)
-  // ====================================================================
+
 
   void onSave(CommunicationItem item) {
     print("CAA Save Action Placeholder: Salvando item ID: ${item.id} com dados: ${item.data}");
@@ -130,9 +111,7 @@ class TelaPrincipalState extends State<TelaPrincipal> {
     print("CAA Delete Action Placeholder: Deletando item ID: ${item.id}");
   }
 
-  // ====================================================================
-  // FUNÇÃO PARA OBTER A LOCALIZAÇÃO E CLIMA
-  // ====================================================================
+
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -307,17 +286,13 @@ class TelaPrincipalState extends State<TelaPrincipal> {
     }
   }
 
-  // FUNÇÃO DE NAVEGAÇÃO CENTRALIZADA
   void _navegarPara(String routeName) {
-    // 1. Fecha o drawer, se estiver aberto (ainda precisa do context para pop o drawer)
     if (Navigator.of(context).canPop()){
       Navigator.pop(context);
     }
 
-    // Adiciona o userId como argumento para rotas que precisam dele
     Map<String, dynamic>? arguments;
     if (routeName == '/rotinas' || routeName == '/caa_grande' || routeName == '/cca_crianca' || routeName == '/diario' || routeName == '/dashboard' || routeName == '/compartilhar' || routeName == '/psicologo') {
-      // Essas rotas esperam a chave 'userId'
       arguments = {'userId': widget.idUsuario};
     } else if (routeName == '/relatorios') {
       arguments = {
@@ -326,37 +301,29 @@ class TelaPrincipalState extends State<TelaPrincipal> {
       };
     }
 
-    // 2. Chama o NavigationService para ir para a rota nomeada
     NavigationService().navigateTo(routeName, arguments: arguments);
   }
 
-  // FUNÇÃO PARA ABRIR O MODO CRISE
   void _abrirModoCrise() {
-    // Garante que o drawer esteja fechado, se estiver aberto
     if (Navigator.of(context).canPop()){
       Navigator.pop(context);
     }
-    // Usa o serviço e assume que a rota é '/modo_crise'
     NavigationService().navigateTo('/modo_crise');
   }
 
 
-  // ====================================================================
-  // CRIAÇÃO DO MENU LATERAL (AJUSTADO PARA ROTAS NOMEADAS)
-  // ====================================================================
+
   List<Map<String, dynamic>> _buildDrawerItens() {
     final List<Map<String, dynamic>> itens = [
-      // DASHBOARD - APENAS PARA PROFISSIONAIS
       if(widget.usuarioProfissional)
         {
           'title': 'Dashboard',
           'icon': Icons.analytics,
           'color': Colors.indigo,
-          'routeName': '/dashboard', // ROTA NOMEADA
+          'routeName': '/dashboard', 
           'type': 'navigate',
         },
 
-      // PSICÓLOGO - APENAS PARA PROFISSIONAIS
       if(widget.usuarioProfissional)
         {
           'title': 'Psicólogo',
@@ -365,21 +332,21 @@ class TelaPrincipalState extends State<TelaPrincipal> {
           'routeName': '/psicologo',
           'type': 'navigate',
         },
-      // ROTINA
+   
       {
         'title': 'Rotina',
         'icon': Icons.schedule,
         'color': Colors.orange,
-        'routeName': '/rotinas', // ROTA NOMEADA
+        'routeName': '/rotinas', 
         'type': 'navigate',
       },
-      // CAA - GRANDE ou CRIANÇA
+      
       if(widget.usuarioCrianca || widget.usuarioAutista)
         {
           'title': 'CAA - Criança',
           'icon': Icons.speaker_phone,
           'color': Colors.yellow,
-          'routeName': '/cca_crianca', // ROTA NOMEADA
+          'routeName': '/cca_crianca', 
           'type': 'navigate',
         }
       else
@@ -387,21 +354,20 @@ class TelaPrincipalState extends State<TelaPrincipal> {
           'title': 'CAA - Grade',
           'icon': Icons.grid_view,
           'color': Colors.blue,
-          'routeName': '/caa_grande', // ROTA NOMEADA
+          'routeName': '/caa_grande', 
           'type': 'navigate',
         },
 
-      // DIARIO
       if(widget.usuarioResponsavel)
         {
           'title': 'Diario',
           'icon': Icons.book_outlined,
           'color': Colors.green,
-          'routeName': '/diario', // ROTA NOMEADA
+          'routeName': '/diario', 
           'type': 'navigate',
         },
 
-      // RELATÓRIOS
+      
       if(widget.usuarioProfissional || widget.usuarioResponsavel)
         {
           'title': 'Relatórios',
@@ -411,7 +377,6 @@ class TelaPrincipalState extends State<TelaPrincipal> {
           'type': 'navigate',
         },
 
-      // COMPARTILHAR
       if(widget.usuarioResponsavel)
         {
           'title': 'Compartilhar',
@@ -421,7 +386,6 @@ class TelaPrincipalState extends State<TelaPrincipal> {
           'type': 'navigate',
         },
 
-      // ACESSIBILIDADE
       {
         'title': 'Acessibilidade',
         'icon': Icons.accessibility_new,
@@ -430,22 +394,19 @@ class TelaPrincipalState extends State<TelaPrincipal> {
         'type': 'navigate',
       },
 
-      // BOTÃO SAIR
       {
         'title': 'Sair',
         'icon': Icons.logout,
         'color': Colors.red,
-        'action': _handleLogout, // FUNÇÃO DE LOGOUT REAL
+        'action': _handleLogout, 
         'type': 'action',
       },
     ];
     return itens;
   }
 
-  // BANNER DO CLIMA E DO RELOGIO
   Widget _buildTempEHora(BuildContext context) {
     if (!_foiInicializado || _statusClima == StatusCarregamentoAPI.carregando) {
-      // Indicador de Carregamento
       return Container(
         height: 120,
         alignment: Alignment.center,
@@ -493,7 +454,6 @@ class TelaPrincipalState extends State<TelaPrincipal> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          // CLIMA
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,9 +498,8 @@ class TelaPrincipalState extends State<TelaPrincipal> {
             ),
           ),
 
-          // RELOGIO
           Container(
-            width: 1, // Separador
+            width: 1, 
             color: Colors.white30,
             margin: const EdgeInsets.symmetric(horizontal: 10),
           ),
@@ -570,9 +529,6 @@ class TelaPrincipalState extends State<TelaPrincipal> {
     );
   }
 
-  // ====================================================================
-  // WIDGET PRINCIPAL
-  // ====================================================================
 
   @override
   Widget build(BuildContext context) {
@@ -584,7 +540,6 @@ class TelaPrincipalState extends State<TelaPrincipal> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      // FLOATING ACTION BUTTON PARA O MODO CRISE
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _abrirModoCrise,
         label: const Text(
@@ -635,7 +590,6 @@ class TelaPrincipalState extends State<TelaPrincipal> {
                       ],
                     ),
                   ),
-                  // Placeholder para a Logo
                   Image.asset(
                     'assets/logoTudo.png',
                     height: 100,
@@ -658,10 +612,8 @@ class TelaPrincipalState extends State<TelaPrincipal> {
                 title: Text(item['title'] as String),
                 onTap: () {
                   if (item['type'] == 'navigate') {
-                    // Usa a função centralizada que chama o NavigationService
                     _navegarPara(item['routeName'] as String);
                   } else if (item['type'] == 'action') {
-                    // Executa a ação (neste caso, _handleLogout)
                     (item['action'] as VoidCallback)();
                   }
                 },
@@ -675,7 +627,6 @@ class TelaPrincipalState extends State<TelaPrincipal> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // SEÇÃO DE BOAS-VINDAS
             Text(
               "Olá,",
               style: TextStyle(
@@ -694,11 +645,9 @@ class TelaPrincipalState extends State<TelaPrincipal> {
             ),
             const SizedBox(height: 16),
 
-            // CLIMA E HORA BANNER
             _buildTempEHora(context),
             const SizedBox(height: 20),
 
-            // TÍTULO DA SEÇÃO
             const Text(
               "Acesso Rápido:",
               style: TextStyle(
@@ -709,7 +658,6 @@ class TelaPrincipalState extends State<TelaPrincipal> {
             ),
             const SizedBox(height: 10),
 
-            // GRID DE BOTÕES DE NAVEGAÇÃO
             GridView.count(
               crossAxisCount: telaLargura > 600 ? 3 : 2,
               crossAxisSpacing: 15,
@@ -747,7 +695,6 @@ class TelaPrincipalState extends State<TelaPrincipal> {
     return "Visitante";
   }
 
-  // WIDGET DE CARD DE FUNCIONALIDADE
   Widget _buildFeatureCard({
     required String title,
     required IconData icon,

@@ -18,13 +18,11 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
 
   @override
   void dispose() {
-    // DISPOSE DAS VARIAVEIS PARA NÃO OCUPAR MEMORIA
     _senhaController.dispose();
     _confirmarsenhaController.dispose();
     super.dispose();
   }
 
-  //TOAST PARA INFORMAR ERRO
   void _mostrarBalaoMensagem(String titulo, String mensagem, {bool isError = false}) {
     showDialog(
       context: context,
@@ -53,14 +51,12 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
     );
   }
 
-  //CONVERSAO DA SENHA PARA HASH
   String hashSenhaSHA256(String senhaInserida) {
     final bytes = utf8.encode(senhaInserida);
     final digest = sha256.convert(bytes);
     return digest.toString();
   }
 
-  //FUNÇÃO DE VALIDAÇÕES E FUNÇÃO LOGIN
   void _validaCampos() {
     if(_validaTela.currentState!.validate()) {
       final String senhaDigitado = _senhaController.text;
@@ -85,8 +81,7 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Nova senha"),
-        //COR DA BARRA DE CIMA
-        //backgroundColor: Colors.blueGrey,
+        backgroundColor: Colors.blueGrey,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
@@ -106,10 +101,8 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
                   )
               ),
 
-              //MARGIN ENTRE OS CAMPOS
               const SizedBox(height: 20,),
 
-              //CAMPO PARA INFORMAR A SENHA
               Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: TextFormField(
                   controller: _senhaController,
@@ -137,10 +130,8 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
                 ),
               ),
 
-              //MARGIN ENTRE OS DOIS CAMPOS
               const SizedBox(height: 20),
 
-              //CAMPO PRA CONFIRMAR A SENHA
               Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: TextFormField(
                   controller: _confirmarsenhaController,
@@ -171,10 +162,8 @@ class _TelaTrocarSenhaState extends State<TelaTrocarSenha> {
                 ),
               ),
 
-              //MARGIN ENTRE OS DOIS CAMPOS
               const SizedBox(height: 20),
 
-              //BOTAO TROCAR SENHA
               Padding( padding: const EdgeInsets.symmetric(horizontal: 70.0),
                 child: ElevatedButton(
                     onPressed: _validaCampos,

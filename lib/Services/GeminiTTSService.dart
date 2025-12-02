@@ -3,13 +3,8 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:audioplayers/audioplayers.dart';
 
-// O serviço de TTS do Gemini retorna áudio PCM, que precisa ser
-// convertido para o formato WAV antes de ser tocado.
-
 class GeminiTTSService {
-  // A API key deve ser injetada em um ambiente real
-  // No contexto Canvas, a chave é injetada automaticamente, mas
-  // mantemos aqui o padrão para demonstrar o endpoint.
+  
   final String _apiKey = '';
   final String _apiUrl =
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
@@ -20,10 +15,9 @@ class GeminiTTSService {
     _audioPlayer.setReleaseMode(ReleaseMode.stop);
   }
 
-  /// Converte o array de áudio PCM (raw audio data) em um Blob WAV reproduzível.
   Uint8List _pcmToWav(Int16List pcmData, int sampleRate) {
     // Tamanho dos dados (em bytes)
-    int dataLength = pcmData.length * 2; // 16 bits = 2 bytes
+    int dataLength = pcmData.length * 2;
     int totalLength = 44 + dataLength;
 
     ByteData buffer = ByteData(totalLength);
@@ -71,7 +65,6 @@ class GeminiTTSService {
 
   /// Realiza a chamada à API do Gemini para gerar áudio TTS.
   Future<void> speak(String text) async {
-    // 1. Configuração do Payload
     final payload = {
       "contents": [
         {
@@ -84,10 +77,8 @@ class GeminiTTSService {
         "responseModalities": ["AUDIO"],
         "speechConfig": {
           "voiceConfig": {
-            // Escolha uma voz que soe bem em português. 'Puck' é um bom default.
             "prebuiltVoiceConfig": {"voiceName": "Puck"}
           },
-          // Definindo o idioma para Português do Brasil
           "languageCode": "pt-BR"
         }
       },
@@ -95,7 +86,6 @@ class GeminiTTSService {
     };
 
     try {
-      // 2. Chamada à API
       final response = await http.post(
         Uri.parse("$_apiUrl?key=$_apiKey"),
         headers: {'Content-Type': 'application/json'},
@@ -107,7 +97,6 @@ class GeminiTTSService {
         return;
       }
 
-      // 3. Processamento da Resposta
       final result = json.decode(response.body);
       final part = result['candidates']?[0]?['content']?['parts']?[0];
       final audioDataB64 = part?['inlineData']?['data'];
@@ -126,7 +115,6 @@ class GeminiTTSService {
       final pcmDataBytes = base64.decode(audioDataB64);
       final pcm16 = Int16List.view(pcmDataBytes.buffer);
 
-      // 4. Converte PCM para WAV e toca
       final wavData = _pcmToWav(pcm16, sampleRate);
 
       // Cria um Blob/URI para o AudioPlayer

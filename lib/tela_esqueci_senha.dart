@@ -14,12 +14,10 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
 
   @override
   void dispose() {
-    // DISPOSE DAS VARIAVEIS PARA NÃO OCUPAR MEMORIA
     _emailController.dispose();
     super.dispose();
   }
 
-  //TOAST PARA INFORMAR ERRO
   void _mostrarBalaoMensagem(String titulo, String mensagem, {bool isError = false}) {
     showDialog(
       context: context,
@@ -65,8 +63,7 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Esqueci minha senha"),
-        //COR DA BARRA DE CIMA
-        //backgroundColor: Colors.blueGrey,
+        backgroundColor: Colors.blueGrey,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
@@ -77,7 +74,6 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
 
-              //TEXTO INFORMATIVO 1
               Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Center(
                   child: Text(
@@ -88,10 +84,8 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
                 ),
               ),
 
-              //MARGIN ENTRE OS TEXTOS
               const SizedBox(height: 30),
 
-              //TEXTO INFORMATIVO 2
               Padding( padding: const EdgeInsets.symmetric(),
                 child: Center(
                   child: Text(
@@ -102,10 +96,8 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
                 ),
               ),
 
-              //MARGIN ENTRE OS TEXTOS
               const SizedBox(height: 30),
 
-              //EMAIL DO CLIENTE
               Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: TextFormField(
                   controller: _emailController,
@@ -133,10 +125,8 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
                 ),
               ),
 
-              //MARGIN ENTRE OS TEXTOS
               const SizedBox(height: 30),
 
-              //BOTAO REGISTRAR
               Padding( padding: const EdgeInsets.symmetric(horizontal: 70.0),
                 child: ElevatedButton(
                     onPressed:_validaCampos,

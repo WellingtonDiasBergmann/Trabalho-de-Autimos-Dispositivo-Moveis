@@ -16,13 +16,12 @@ const Color deleteColor = Color(0xFFF44336);
 
 class TelaCcaGrande extends StatefulWidget {
   final void Function(String text) speakAction;
-  // ⭐️ MUDANÇA 1: Adicionar o userId ao construtor
   final int userId;
 
   const TelaCcaGrande({
     super.key,
     required this.speakAction,
-    required this.userId, // ⭐️ OBRIGATÓRIO
+    required this.userId, 
   });
 
   @override
@@ -214,9 +213,7 @@ class _TelaCcaGrandeState extends State<TelaCcaGrande> {
     }
   }
 
-  // -----------------------------------------------------------
-  // LÓGICA DE PERSISTÊNCIA (SQL)
-  // -----------------------------------------------------------
+
 
   Future<void> _loadItemsFromDb() async {
     setState(() {
@@ -234,7 +231,6 @@ class _TelaCcaGrandeState extends State<TelaCcaGrande> {
       
       debugPrint('_loadItemsFromDb: Carregando itens do board $_boardId');
       
-      // ⭐️ Chama o método do seu DB Helper para carregar itens
       final items = await _dbService.getBoardItemsByBoardId(_boardId!);
       
       debugPrint('_loadItemsFromDb: ${items.length} itens carregados');
@@ -264,7 +260,6 @@ class _TelaCcaGrandeState extends State<TelaCcaGrande> {
       
       debugPrint('_saveOrUpdateItem: Salvando item "${itemToSave.texto}" no board $_boardId');
       
-      // ⭐️ Chamada SQL correta (usando os métodos de Insert/Update do seu Helper)
       int? savedId;
       if (itemToSave.id == null) {
         savedId = await _dbService.insertItem(itemToSave);
@@ -319,15 +314,12 @@ class _TelaCcaGrandeState extends State<TelaCcaGrande> {
     );
 
     if (confirmDelete == true) {
-      // ⭐️ Chamada SQL correta
       await _dbService.deleteItem(id);
       await _loadItemsFromDb(); // Recarrega os itens
     }
   }
 
-  // -----------------------------------------------------------
-  // AÇÕES DE UI E MODAL
-  // -----------------------------------------------------------
+
 
   void _openItemModal({BoardItem? item}) {
     showDialog(
@@ -363,14 +355,10 @@ class _TelaCcaGrandeState extends State<TelaCcaGrande> {
     });
   }
 
-  // -----------------------------------------------------------
-  // CONSTRUÇÃO DO CARD (ITEM VISUAL)
-  // -----------------------------------------------------------
 
   Widget _buildCommunicationCard(BoardItem item) {
     final itemId = item.id;
 
-    // ⭐️ MUDANÇA 2: Melhorar o visual do Card.
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -453,7 +441,6 @@ class _TelaCcaGrandeState extends State<TelaCcaGrande> {
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        // ⭐️ MUDANÇA 3: Adicionar o userId ao título para debug
         title: Text("Prancha CAA (Usuário ${widget.userId})", style: const TextStyle(color: Colors.white)),
         backgroundColor: primaryColor,
         actions: [

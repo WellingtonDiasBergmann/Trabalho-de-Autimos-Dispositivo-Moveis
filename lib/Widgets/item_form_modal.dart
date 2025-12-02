@@ -32,7 +32,6 @@ class _ItemFormModalState extends State<ItemFormModal> {
   void initState() {
     super.initState();
     final item = widget.itemToEdit;
-    // Usa as propriedades do BoardItem: imgUrl (ícone), texto (palavra), fraseTts (frase)
     _iconController = TextEditingController(text: item?.imgUrl ?? '');
     _wordController = TextEditingController(text: item?.texto ?? '');
     _phraseController = TextEditingController(text: item?.fraseTts ?? '');

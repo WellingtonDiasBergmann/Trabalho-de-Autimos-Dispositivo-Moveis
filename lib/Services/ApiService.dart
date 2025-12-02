@@ -8,7 +8,7 @@ import 'package:trabalhofinal/Models/User.dart';
 import 'package:trabalhofinal/Models/Anamnese.dart';
 import 'package:trabalhofinal/Models/MChat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trabalhofinal/Services/ApiConstant.dart'; // Importa a nova classe de constantes
+import 'package:trabalhofinal/Services/ApiConstant.dart'; 
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -20,9 +20,7 @@ class ApiService {
   String? _jwtToken;
   bool _tokenLoaded = false;
 
-  // =========================================================
-  // LOGGING CENTRALIZADO
-  // =========================================================
+
 
   /// Função auxiliar de log para maior consistência e fácil desativação.
   void _log(String level, String message, {dynamic error}) {
@@ -33,9 +31,7 @@ class ApiService {
     }
   }
 
-  // =========================================================
-  // TOKEN E HEADERS
-  // =========================================================
+
 
   /// Carrega o token apenas uma vez do SharedPreferences ou é definido pelo login.
   Future<void> _loadToken() async {
@@ -85,9 +81,6 @@ class ApiService {
     return headers;
   }
 
-  // =========================================================
-  // HELPER PARA REQUISIÇÕES GENÉRICAS
-  // =========================================================
 
   /// Wrapper genérico para todas as requisições HTTP para centralizar logging e tratamento de erros.
   Future<http.Response> _performRequest(
@@ -165,9 +158,7 @@ class ApiService {
     }
   }
 
-  // =========================================================
-  // AUTH
-  // =========================================================
+
 
   /// Trata a resposta do servidor após o signup ou login.
   Future<Map<String, dynamic>> _handleAuthResponse(http.Response response) async {
@@ -191,17 +182,13 @@ class ApiService {
         return {'success': false, 'message': 'Resposta inválida: token ou usuário não encontrados.'};
       }
 
-      // 1. Salva o token
       await saveToken(token);
 
-      // 2. Garante que userMap seja o Map<String, dynamic>
       try {
         final Map<String, dynamic> userMap = userJson is Map<String, dynamic>
             ? userJson
             : jsonDecode(jsonEncode(userJson)) as Map<String, dynamic>;
 
-        // CORREÇÃO CRÍTICA: Retorna o Map<String, dynamic> bruto (userMap),
-        // e não o objeto User já desserializado.
         return {'success': true, 'user': userMap, 'access_token': token};
       } catch (e) {
         _log('AUTH WARN', 'Erro ao processar JSON do usuário. Retornando objeto original.', error: e);
@@ -253,9 +240,7 @@ class ApiService {
     _log('LOGOUT', 'Token de acesso removido do SharedPreferences e variável interna.');
   }
 
-  // =========================================================
-  // HELPER GENÉRICO PARA REQUISIÇÕES AUTENTICADAS
-  // =========================================================
+ 
 
   // Refatora o request para usar o _performRequest e _handleHttpError.
   Future<Map<String, dynamic>> request(String endpoint, {
@@ -288,9 +273,6 @@ class ApiService {
     return _jwtToken;
   }
 
-  // =========================================================
-  // ROTINAS (CRUD COMPLETO)
-  // =========================================================
 
   Future<List<Routine>> fetchRoutines() async {
     final url = Uri.parse('${ApiConstant.baseUrl}/routines');
@@ -358,15 +340,12 @@ class ApiService {
       if (response.statusCode != 204 && response.statusCode != 200) {
         throw _handleHttpError(response);
       }
-      // Status 204 (No Content) é comum para DELETEs bem-sucedidos.
     } on Exception {
       rethrow;
     }
   }
 
-  // =========================================================
-  // DIÁRIO (CRUD COMPLETO)
-  // =========================================================
+  
 
   Future<Diario> createEntry(Diario entry) async {
     final url = Uri.parse('${ApiConstant.baseUrl}/entries');
@@ -438,9 +417,7 @@ class ApiService {
     }
   }
 
-  // =========================================================
-  // BOARDS (CRUD COMPLETO)
-  // =========================================================
+
 
   Future<Board> createBoard(Board board) async {
     final url = Uri.parse('${ApiConstant.baseUrl}/boards');
@@ -511,9 +488,6 @@ class ApiService {
     }
   }
 
-  // =========================================================
-  // BOARD ITEMS (CRUD COMPLETO)
-  // =========================================================
 
   Future<BoardItem> createBoardItem(int boardId, BoardItem item) async {
     final url = Uri.parse('${ApiConstant.baseUrl}/boards/$boardId/items');
@@ -567,9 +541,6 @@ class ApiService {
     }
   }
 
-  // =========================================================
-  // ANamnese e M-CHAT (PSICÓLOGO)
-  // =========================================================
 
   Future<Anamnese> createAssessment(Anamnese anamnese) async {
     final url = Uri.parse('${ApiConstant.baseUrl}/psych/assessments');

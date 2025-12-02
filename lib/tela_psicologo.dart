@@ -379,7 +379,6 @@ class _TelaPsicologoState extends State<TelaPsicologo> with SingleTickerProvider
     );
 
     if (confirm == true) {
-      // Em produção, chamaria _apiService.deleteAssessment(assessment.id!)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Funcionalidade de exclusão em desenvolvimento')),
       );

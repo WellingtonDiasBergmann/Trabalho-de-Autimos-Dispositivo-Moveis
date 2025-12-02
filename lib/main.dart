@@ -18,12 +18,10 @@ import 'package:trabalhofinal/tela_compartilhar.dart';
 import 'package:trabalhofinal/tela_acessibilidade.dart';
 import 'package:trabalhofinal/tela_psicologo.dart';
 import 'package:trabalhofinal/Services/SimpleTTSService.dart';
-// Mantida para consistência com o arquivo original. Pode ser removida se não for usada.
 import 'package:crypto/crypto.dart';
 
 
 void main() {
-  // Configuração para garantir que o Flutter binding esteja inicializado antes de rodar o app.
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
@@ -33,10 +31,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // O MaterialApp é o ponto central onde definimos todas as rotas do app.
     return MaterialApp(
       title: 'Spektrum',
-      // PASSO CRÍTICO: Anexar a chave de navegação global para o NavigationService
       navigatorKey: NavigationService().navigatorKey,
 
       theme: ThemeData(
@@ -44,20 +40,15 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      // Definir as rotas nomeadas para todo o aplicativo
-      initialRoute: '/', // Define a rota inicial como a tela de Login
+      initialRoute: '/', 
       routes: {
-        // ROTAS DE PRIMEIRO NÍVEL (Acessíveis do Login)
-        '/': (context) => const MyHomePage(title: 'Spektrum'), // Rota de Login
+        '/': (context) => const MyHomePage(title: 'Spektrum'), 
         '/registrar': (context) => const TelaRegistrar(),
         '/esqueci_senha': (context) => const TelaEsqueciSenha(),
 
-        // ROTA PRINCIPAL (DESTINO APÓS O LOGIN)
         '/home': (context) {
-          // Assegura que os argumentos sejam lidos como Map<String, dynamic>
           final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
-          // Verifica se os argumentos críticos (como userId) existem
           if (args == null ||
               !args.containsKey('userId') ||
               !args.containsKey('nomeUsuario') ||
@@ -65,13 +56,9 @@ class MyApp extends StatelessWidget {
               !args.containsKey('usuarioResponsavel') ||
               !args.containsKey('usuarioProfissional') ||
               !args.containsKey('usuarioCrianca')) {
-            // Se faltar algum argumento crucial (o que pode ter acontecido se o login falhou
-            // ou a navegação foi incompleta), volta para a tela de login.
             return const MyHomePage(title: 'Spektrum');
           }
 
-          // Leitura dos argumentos. Como _validaCampos agora envia booleanos não-nulos
-          // (graças aos Getters), podemos usar o cast 'as bool' diretamente após o null check inicial.
           final int idUsuario = args['userId'] as int;
           final String nomeUsuario = args['nomeUsuario'] as String;
 
@@ -90,7 +77,6 @@ class MyApp extends StatelessWidget {
           );
         },
 
-        // ROTAS DE SEGUNDO NÍVEL (Usadas pela TelaPrincipal e NavigationService)
         '/modo_crise': (context) => const TelaModoCrise(),
 
         '/rotinas': (context) {
@@ -115,8 +101,6 @@ class MyApp extends StatelessWidget {
           if (userId == null) {
             return const Scaffold(body: Center(child: Text("Erro: ID de Usuário ausente para CCA Criança.")));
           }
-
-          // Usa o serviço TTS simples (flutter_tts)
           final ttsService = SimpleTTSService();
           void speakAction(String text) {
             if (text.isNotEmpty) {
@@ -138,7 +122,6 @@ class MyApp extends StatelessWidget {
             return const Scaffold(body: Center(child: Text("Erro: ID de Usuário ausente para CAA Grande.")));
           }
 
-          // Usa o serviço TTS simples (flutter_tts)
           final ttsService = SimpleTTSService();
           void speakAction(String text) {
             if (text.isNotEmpty) {
@@ -245,7 +228,6 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  // TOAST PARA INFORMAR ERRO
   void _mostrarBalaoMensagem(String titulo, String mensagem, {bool isError = false}) {
     showDialog(
       context: context,
@@ -274,21 +256,15 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // CODIGOS DE NAVEGAÇÃO
   void _abrirTelaRegistrar() {
-    // Navegação para a rota nomeada '/registrar'
     Navigator.pushNamed(context, '/registrar');
   }
 
-  // CODIGOS DE NAVEGAÇÃO
   void _abrirTelaTrocaSenha() {
-    // Navegação para a rota nomeada '/esqueci_senha'
     Navigator.pushNamed(context, '/esqueci_senha');
   }
 
-  // FUNÇÃO DE VALIDAÇÕES E FUNÇÃO LOGIN
   Future<void> _validaCampos() async {
-    // Adicionado o 'if (_isLoading) return;' para evitar múltiplos cliques
     if (!_validaLogin.currentState!.validate() || _isLoading) return;
 
     setState(() => _isLoading = true);
@@ -297,14 +273,10 @@ class _MyHomePageState extends State<MyHomePage> {
     final String password = _senhaController.text;
 
     try {
-      // 1) LOGIN COMPLETO (LOGIN + USER)
       final authResult = await _syncService.signInAndSync(email, password);
 
       if (authResult['success'] == true) {
 
-        // RECUPERAÇÃO E CONVERSÃO DEFENSIVA DO USUÁRIO
-        // Se 'user' vem como um Map<String, dynamic> (JSON bruto)
-        // é necessário convertê-lo explicitamente.
         User? user;
         final dynamic userData = authResult['user'];
 
@@ -314,21 +286,15 @@ class _MyHomePageState extends State<MyHomePage> {
           user = userData;
         }
 
-        // VERIFICAÇÃO IMPORTANTE
-        // Esta exceção é disparada se o user não foi convertido ou se user.id é null
         if (user == null || user.id == null) {
           throw Exception("Usuário ou ID não retornado pela API ou conversão de dados falhou.");
         }
 
-        // CORREÇÃO: Usando os Getters booleanos (user.usuarioCrianca) em vez
-        // de propriedades opcionais (user.isCrianca) para garantir que um
-        // valor 'bool' (não 'bool?') seja enviado para a rota '/home'.
         NavigationService().navigateToAndRemoveAll(
           '/home',
           arguments: {
             'userId': user.id,
             'nomeUsuario': user.nome ?? 'Usuário',
-            // Getters que retornam bool (false por padrão se não definido)
             'usuarioAutista': user.usuarioAutista,
             'usuarioResponsavel': user.usuarioResponsavel,
             'usuarioProfissional': user.usuarioProfissional,
@@ -351,11 +317,9 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
     } catch (e) {
-      // Adicionado um log para facilitar a depuração de erros de conexão/API
       debugPrint("Erro durante o processo de login: $e");
       _mostrarBalaoMensagem(
         "Erro de Conexão",
-        // A mensagem da exceção lançada (se houver) aparecerá aqui.
         "Problema ao conectar com o servidor ou dados inválidos: ${e.toString()}",
         isError: true,
       );
@@ -379,7 +343,6 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              //LOGO
               Padding(padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Image.asset(
                   'assets/logoTudo.png',
@@ -388,7 +351,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
 
-              //CAMPO PRA INFORMAR O USUARIO (ASSUMINDO QUE É O EMAIL)
               const SizedBox(height: 30),
               Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: TextFormField(
@@ -417,10 +379,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
 
-              //MARGIN ENTRE OS DOIS CAMPO QUE O USUARIO PODE ESCREVER
               const SizedBox(height: 20),
 
-              //CAMPO PARA INFORMAR A SENHA
               Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: TextFormField(
                   controller: _senhaController,
@@ -460,10 +420,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
 
-              //MARGIN ENTRE O CAMPO DA SENHA E O BOTAO
               const SizedBox(height: 40),
 
-              // BOTAO ENTRAR (com indicador de carregamento)
               Padding( padding: const EdgeInsets.symmetric(horizontal: 70.0),
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
@@ -484,10 +442,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
 
-              //MARGIN ENTRE O BOTAO E O TEXTO PRA CADASTRAR
               const SizedBox(height: 40),
 
-              //TEXTO PRA CADASTRAR
               Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: GestureDetector(
                   onTap: _abrirTelaRegistrar,
@@ -517,10 +473,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
 
-              //MARGIN ENTRE O BOTAO E O TEXTO PRA CADASTRAR
               const SizedBox(height: 10),
 
-              //TEXTO DE ESQUECEU A SENHA
               Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: GestureDetector(
                   onTap: _abrirTelaTrocaSenha,

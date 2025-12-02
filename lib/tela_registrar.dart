@@ -81,9 +81,7 @@ class _TelaRegistrarState extends State<TelaRegistrar> {
     );
   }
 
-  // ------------------------------
-  // CHAMADA API  - CORRIGIDO!!!
-  // ------------------------------
+ 
   Future<void> _validaCamposEChamaAPI() async {
     if (_validaRegistro.currentState!.validate()) {
       if (_senhaController.text != _confirmasenhaController.text) {
@@ -132,11 +130,9 @@ class _TelaRegistrarState extends State<TelaRegistrar> {
         setState(() => _isLoading = false);
       }
     }
-  }  // 👉 AGORA FECHOU CERTINHO!
+  } 
 
-  // ------------------------------
-  // WIDGET PARA CAMPOS DE TEXTO
-  // ------------------------------
+
   Widget _buildTextFormField(
       TextEditingController controller,
       String label, {

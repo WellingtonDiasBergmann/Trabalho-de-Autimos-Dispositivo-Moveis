@@ -28,7 +28,6 @@ class SyncService {
     if (err != null) print('[$ts] [SYNC ERROR] $err');
   }
 
-  // Helper: Converte resposta da API (snake_case) para formato Flutter (camelCase)
   Future<Routine> _routineFromApiResponse(Map<String, dynamic> apiData) async {
     // A API pode retornar aninhado em 'rotina' ou diretamente
     final routineData = apiData['rotina'] ?? apiData;
@@ -85,9 +84,7 @@ class SyncService {
     );
   }
 
-  // =====================================================
-  // LOGIN E SINCRONIZAÇÃO INICIAL
-  // =====================================================
+
   Future<Map<String, dynamic>> signInAndSync(String email, String password) async {
     try {
       final authResult = await _apiService.login(email, password);
@@ -106,7 +103,6 @@ class SyncService {
       }
 
       if (rawUserJson is Map<String, dynamic>) {
-        // Certifique-se de que o construtor User.fromJson lida corretamente com a estrutura de dados
         user = User.fromJson(rawUserJson);
       } else {
         _log('LOGIN_FAIL', 'Dados de usuário ausentes ou formato JSON incorreto: ${rawUserJson.runtimeType}');
@@ -117,9 +113,7 @@ class SyncService {
         return {'success': false, 'message': 'ID de usuário nulo retornado pela API.'};
       }
 
-      // 1. SALVAR DADOS E INICIAR SINCRONIZAÇÃO COMPLETA
       await _dbHelper.insertUser(user);
-      // Passa o token para as requisições subsequentes (assumindo que ApiService cuida disso)
       await syncAllUserData(user.id!);
 
       return {'success': true, 'user': user, 'message': 'Login e Sincronização realizados com sucesso!'};
@@ -130,29 +124,21 @@ class SyncService {
     }
   }
 
-  // =====================================================
-  // SINCRONIZAÇÃO GERAL (PUSH + PULL)
-  // =====================================================
+
   Future<void> syncAll() async {
     _log('SYNC_START', 'Iniciando sincronização...');
 
-    // --- 1. FASE PUSH (Enviar dados locais pendentes) ---
     await _pushUnsyncedRoutines();
     await _pushUnsyncedDiarioEntries();
 
-    // --- 2. FASE PULL (Buscar novos dados do servidor) ---
     await _pullRoutinesFromServer();
     await _pullDiarioEntriesFromServer();
 
     _log('SYNC_END', 'Sincronização concluída.');
   }
 
-  // =====================================================
-  // PUSH: ENVIAR ROTINAS LOCAIS PARA O SERVIDOR (COM CONCORRÊNCIA)
-  // =====================================================
+
   Future<void> _pushUnsyncedRoutines() async {
-    // Busca todas as rotinas que estão marcadas com needsSync = true
-    // Assumimos que getUnsyncedRoutines retorna a PK local no campo 'id'
     final unsyncedRoutines = await _dbHelper.getUnsyncedRoutines();
 
     if (unsyncedRoutines.isEmpty) {
@@ -179,8 +165,7 @@ class SyncService {
     // Cria uma lista de tarefas Future, permitindo o envio em paralelo (concorrência)
     final pushTasks = unsyncedRoutines.map((routine) async {
       try {
-        // Busca o server_id do banco de dados para esta rotina
-        // Se server_id for NULL, é uma nova rotina (POST), senão é atualização (PUT)
+        
         final db = await _dbHelper.database;
         final localId = routine.id;
 
@@ -308,9 +293,6 @@ class SyncService {
     await Future.wait(pushTasks);
   }
 
-  // =====================================================
-  // PULL: BUSCAR ROTINAS DO SERVIDOR
-  // =====================================================
   Future<void> _pullRoutinesFromServer() async {
     _log('PULL_START', 'Buscando rotinas no servidor...');
 
@@ -374,10 +356,8 @@ class SyncService {
               int finalLocalId;
               await db.transaction((txn) async {
                 if (localId != null) {
-                  // UPDATE: Rotina já existe localmente
                   finalLocalId = localId;
 
-                  // Atualiza a rotina
                   await txn.update(
                     'rotinas',
                     {
@@ -392,7 +372,6 @@ class SyncService {
                     whereArgs: [localId],
                   );
                 } else {
-                  // INSERT: Nova rotina
                   final insertedId = await txn.insert(
                     'rotinas',
                     {
@@ -446,9 +425,7 @@ class SyncService {
     }
   }
 
-  // =====================================================
-  // CRIAÇÃO E ENVIO DE ROTINA (Função de suporte do ApiService)
-  // =====================================================
+
   Future<Map<String, dynamic>> sendRoutineToServer(Routine routine) async {
     try {
       // O ApiService.createRoutine deve receber uma Routine e retornar a Routine criada
@@ -461,9 +438,6 @@ class SyncService {
     }
   }
 
-  // =====================================================
-  // FUNÇÃO DE CRIAÇÃO: ADICIONAR NOVA ROTINA
-  // =====================================================
   Future<Map<String, dynamic>> addRotina(Routine r) async {
     // 1. Salva localmente, marcando-a para sincronização
     final localRoutine = r.copyWith(needsSync: true);
@@ -490,9 +464,6 @@ class SyncService {
     }
   }
 
-  // =====================================================
-  // FUNÇÃO DE ATUALIZAÇÃO: ATUALIZAR ROTINA
-  // =====================================================
   Future<Map<String, dynamic>> updateRotina(Routine r) async {
     // 1. Marca para sincronização e salva localmente.
     final localRoutine = r.copyWith(needsSync: true);
@@ -502,12 +473,10 @@ class SyncService {
     try {
       // Usa a função de atualização da ApiService
 
-      // VERIFICAÇÃO CRÍTICA: O ID não pode ser nulo para uma atualização.
       if (localRoutine.id == null) {
         throw Exception('ID da rotina não pode ser nulo para PUT/UPDATE.');
       }
 
-      // CORREÇÃO: Passa o ID da rotina como primeiro argumento
       final updatedRoutine = await _apiService.updateRoutine(localRoutine.id!, localRoutine);
 
       // 3. Se o envio for bem-sucedido, atualiza o status de sincronização no banco de dados local.
@@ -523,9 +492,6 @@ class SyncService {
     }
   }
 
-  // =====================================================
-  // SINCRONIZAÇÃO DE TODOS OS DADOS DO USUÁRIO
-  // =====================================================
   Future<void> syncAllUserData(int userId) async {
     _log('SYNC_USER_DATA', 'Iniciando sincronização de dados do usuário $userId...');
 
@@ -535,9 +501,6 @@ class SyncService {
     _log('SYNC_USER_DATA', 'Sincronização de dados do usuário concluída.');
   }
 
-  // =====================================================
-  // REGISTRO DE USUÁRIO (SIGNUP)
-  // =====================================================
   Future<Map<String, dynamic>> signup(Map<String, dynamic> userData, String password) async {
     try {
       final response = await _apiService.signup(userData, password);
@@ -559,10 +522,8 @@ class SyncService {
           return {'success': false, 'message': 'ID de usuário nulo após o registro.'};
         }
 
-        // 1. Salva o novo usuário localmente
         await _dbHelper.insertUser(newUser);
 
-        // 2. Inicia a sincronização (principalmente PULL inicial)
         await syncAllUserData(newUser.id!);
 
         return {'success': true, 'message': 'Usuário cadastrado com sucesso!', 'user': newUser};
@@ -575,17 +536,12 @@ class SyncService {
     }
   }
 
-  // =====================================================
-  // BOARD ITEMS SYNC
-  // =====================================================
 
-  /// Sincroniza um BoardItem com a API (cria novo)
+
   Future<BoardItem?> syncBoardItem(BoardItem item, int boardId) async {
     try {
-      // Usa o ApiService para fazer a requisição (ele já gerencia o token)
       final apiItem = await _apiService.createBoardItem(boardId, item);
       
-      // Atualiza o item local com o server_id
       if (item.id != null && apiItem.id != null) {
         final db = await _dbHelper.database;
         await db.update(
@@ -640,9 +596,7 @@ class SyncService {
     }
   }
 
-  // =====================================================
-  // DIÁRIO SYNC
-  // =====================================================
+
 
   /// Sincroniza uma entrada de diário com a API (cria novo)
   Future<Diario?> syncDiarioEntry(Diario entry) async {
@@ -719,9 +673,6 @@ class SyncService {
     }
   }
 
-  // =====================================================
-  // PUSH: ENVIAR ENTRIES DE DIÁRIO LOCAIS PARA O SERVIDOR
-  // =====================================================
   Future<void> _pushUnsyncedDiarioEntries() async {
     try {
       final unsyncedEntries = await _dbHelper.getUnsyncedDiarioEntries();
@@ -763,9 +714,8 @@ class SyncService {
     }
   }
 
-  // =====================================================
-  // PULL: BUSCAR ENTRIES DE DIÁRIO DO SERVIDOR
-  // =====================================================
+
+
   Future<void> _pullDiarioEntriesFromServer() async {
     _log('PULL_START', 'Buscando entradas de diário no servidor...');
     try {
@@ -786,7 +736,6 @@ class SyncService {
           );
 
           if (existingEntry.isNotEmpty) {
-            // UPDATE: Entrada já existe localmente
             final localId = existingEntry.first['id'] as int;
             final entryToUpdate = apiEntry.copyWith(id: localId);
             final mapToUpdate = entryToUpdate.toMap();
@@ -799,7 +748,6 @@ class SyncService {
               whereArgs: [localId],
             );
           } else {
-            // INSERT: Nova entrada
             final entryToInsert = apiEntry.copyWith(id: null); // Remove ID local para inserir novo
             final mapToInsert = entryToInsert.toMap();
             mapToInsert['server_id'] = apiEntry.id; // Salva server_id
@@ -819,9 +767,7 @@ class SyncService {
     }
   }
 
-  // =====================================================
-  // LOGOUT
-  // =====================================================
+ 
   Future<void> sair() async {
     try {
       // Tenta fazer um PUSH final para não perder dados locais não sincronizados

@@ -14,12 +14,10 @@ class _TelaInformarCodigoState extends State<TelaInformarCodigo> {
 
   @override
   void dispose() {
-    // DISPOSE DAS VARIAVEIS PARA NÃO OCUPAR MEMORIA
     _codigoController.dispose();
     super.dispose();
   }
 
-  //TOAST PARA INFORMAR ERRO
   void _mostrarBalaoMensagem(String titulo, String mensagem, {bool isError = false}) {
     showDialog(
       context: context,
@@ -65,8 +63,7 @@ class _TelaInformarCodigoState extends State<TelaInformarCodigo> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Confirmar email"),
-        //COR DA BARRA DE CIMA
-        //backgroundColor: Colors.blueGrey,
+        backgroundColor: Colors.blueGrey,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
@@ -77,10 +74,8 @@ class _TelaInformarCodigoState extends State<TelaInformarCodigo> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
 
-              //MARGIN ENTRE OS CAMPOS
               const SizedBox(height: 40,),
 
-              //TEXTO INFORMATIVO 1
               Padding( padding: const EdgeInsets.symmetric(),
                 child: Center(
                   child: Text(
@@ -91,10 +86,8 @@ class _TelaInformarCodigoState extends State<TelaInformarCodigo> {
                 ),
               ),
 
-              //MARGIN ENTRE OS CAMPOS
               const SizedBox(height: 30,),
 
-              //CAMPO PARA INFORMAR A SENHA
               Padding( padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: TextFormField(
                   controller: _codigoController,
@@ -121,10 +114,8 @@ class _TelaInformarCodigoState extends State<TelaInformarCodigo> {
                 ),
               ),
 
-              //MARGIN ENTRE OS CAMPOS
               const SizedBox(height: 30,),
 
-              //BOTAO CONFIRMAR CODIGO
               Padding( padding: const EdgeInsets.symmetric(horizontal: 70.0),
                 child: ElevatedButton(
                     onPressed: _validaCampos,

@@ -38,7 +38,6 @@ class User {
     );
   }
 
-  // --- GETTERS DE TIPO ---
   bool get usuarioAutista => tipoUsuario == 0;
   bool get usuarioResponsavel => tipoUsuario == 1;
   bool get usuarioProfissional => tipoUsuario == 2;
@@ -46,7 +45,6 @@ class User {
   // O getter de crianca depende da flag 'isCrianca' do perfil
   bool get usuarioCrianca => isCrianca ?? false;
 
-  // --- API (JSON) ---
   /// Converte um JSON recebido da API em um objeto User.
   factory User.fromJson(Map<String, dynamic> json) {
     int? parseId(dynamic value) {
@@ -80,15 +78,12 @@ class User {
       email: json['email'] ?? '',
       telefone: json['telefone'] ?? '',
       tipoUsuario: parsedTipoUsuario,
-      // Tenta converter o campo idade para int
       idade: int.tryParse(json['idade']?.toString() ?? ''),
       crp: json['crp'],
-      // Aceita tanto 'is_crianca' (snake_case) quanto 'isCrianca' (camelCase)
       isCrianca: parseBool(json['is_crianca'] ?? json['isCrianca']),
     );
   }
 
-  // --- SQLITE (MAP) ---
   factory User.fromMap(Map<String, dynamic> map) {
     bool? mapToBool(dynamic value) {
       if (value == null) return null;

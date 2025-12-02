@@ -13,13 +13,12 @@ const Color backgroundColor = Color(0xFFFFF3E0);
 
 class TelaCcaCrianca extends StatefulWidget {
   final void Function(String text) speakAction;
-  // ⭐️ MUDANÇA 1: Adicionar o userId ao construtor
   final int userId;
 
   const TelaCcaCrianca({
     super.key,
     required this.speakAction,
-    required this.userId, // ⭐️ OBRIGATÓRIO
+    required this.userId, 
   });
 
   @override
@@ -182,10 +181,7 @@ class _TelaCcaCriancaState extends State<TelaCcaCrianca> {
     }
   }
 
-  // -----------------------------------------------------------
-  // LÓGICA DE PERSISTÊNCIA (SQL)
-  // -----------------------------------------------------------
-
+  
   Future<void> _loadItemsFromDb() async {
     setState(() {
       _isLoading = true;
@@ -291,9 +287,6 @@ class _TelaCcaCriancaState extends State<TelaCcaCrianca> {
     );
   }
 
-  // -----------------------------------------------------------
-  // CONSTRUÇÃO DO CARD (ITEM VISUAL SIMPLIFICADO)
-  // -----------------------------------------------------------
 
   Widget _buildKidCard(BoardItem item) {
     return Card(
@@ -318,7 +311,6 @@ class _TelaCcaCriancaState extends State<TelaCcaCrianca> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // ÍCONE GRANDE
               Expanded(
                 child: Center(
                   child: Text(
@@ -328,7 +320,6 @@ class _TelaCcaCriancaState extends State<TelaCcaCrianca> {
                 ),
               ),
               const SizedBox(height: 10),
-              // PALAVRA GRANDE
               Text(
                 item.texto,
                 textAlign: TextAlign.center,

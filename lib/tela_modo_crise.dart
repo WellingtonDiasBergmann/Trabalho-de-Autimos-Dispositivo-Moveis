@@ -174,9 +174,9 @@ class _TelaModoCriseState extends State<TelaModoCrise> {
       appBar: AppBar(
         title: const Text("Modo Crise", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.red.shade700,
-        iconTheme: const IconThemeData(color: Colors.white), // Ícone de voltar branco
+        iconTheme: const IconThemeData(color: Colors.white), 
       ),
-      backgroundColor: Colors.red.shade50, // Fundo levemente colorido para contraste
+      backgroundColor: Colors.red.shade50, 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -233,7 +233,6 @@ class _TelaModoCriseState extends State<TelaModoCrise> {
 
             const SizedBox(height: 20),
             
-            // Botão para editar configurações
             TextButton.icon(
               onPressed: _editarConfiguracoes,
               icon: const Icon(Icons.settings),

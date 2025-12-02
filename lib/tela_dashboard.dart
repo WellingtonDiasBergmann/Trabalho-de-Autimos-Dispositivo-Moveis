@@ -211,7 +211,7 @@ class _TelaDashboardState extends State<TelaDashboard> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Container(), // Espaço vazio para manter layout
+                          child: Container(), 
                         ),
                       ],
                     ),
